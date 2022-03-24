@@ -85,7 +85,7 @@ public class Biomaker extends AbstractTask {
 		for (String temp : type) {
 			if (temp.contains("activation") || temp.contains("expression") || temp.contains("inhibition")
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
-					|| temp.contains("missing_interaction") || temp.contains("phosphorylation")) {
+					|| temp.contains("missing_interaction") || temp.contains("phosphorylation") || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
 			} else if (temp.contains("dissociation")) {
 				direction = DirectionType.UNDIRECTED;
@@ -115,17 +115,19 @@ public class Biomaker extends AbstractTask {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 
-				for (int j = 0; j < subNameNode.size(); j++) {
-					if (j == subNameNode.size() - 1) {
+				if(subNameNode != null) {
+					for (int j = 0; j < subNameNode.size(); j++) {
+						if (j == subNameNode.size() - 1) {
 
-					} else {
-						for (int k = j + 1; k < subNameNode.size(); k++) {
-							Interaction edge = new Interaction(subNameNode.get(j), subNameNode.get(k), 1);
-							edge.setDirection(DirectionType.UNDIRECTED);
-							Links.add(edge);
+						} else {
+							for (int k = j + 1; k < subNameNode.size(); k++) {
+								Interaction edge = new Interaction(subNameNode.get(j), subNameNode.get(k), 1);
+								edge.setDirection(DirectionType.UNDIRECTED);
+								Links.add(edge);
 
-							setV.add(subNameNode.get(j));
-							setV.add(subNameNode.get(k));
+								setV.add(subNameNode.get(j));
+								setV.add(subNameNode.get(k));
+							}
 						}
 					}
 				}
@@ -136,7 +138,22 @@ public class Biomaker extends AbstractTask {
 		for (int i = 0; i < listEdge.size(); i++) {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-			if (type.contains("compound")) {
+			if(type == null) {
+				List<String> txtType = cyTable.getRow(listEdge.get(i).getSUID()).get("direction", List.class);
+				DirectionType direction = getType(txtType);
+				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+				String[] subName = name.split(" ");
+				Interaction edge = new Interaction(subName[0], subName[subName.length - 1], 1);
+				edge.setDirection(direction);
+				Links.add(edge);
+
+				setV.add(subName[0]);
+				setV.add(subName[subName.length - 1]);
+				if (direction == DirectionType.UNDIRECTED) {
+					unCount++;
+				}
+				
+			}else if (type.contains("compound")) {
 
 			} else {
 				DirectionType direction = getType(type);
@@ -443,10 +460,57 @@ public class Biomaker extends AbstractTask {
 		listNode = net.getNodeList();
 
 		// neu trong suid hien tai co nhieu hon 1 nut
+//		for (int i = 0; i < listNode.size(); i++) {
+//			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
+//			if (subName.contains("container")) {
+//
+//			} else {
+//				List<String> subNameNode = new ArrayList<String>();
+//				try {
+//					subNameNode = cyTableNode.getRow(listNode.get(i).getSUID()).get("KEGG_ID", List.class);
+//				} catch (Exception e) {
+//					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
+//				}
+//
+//				for (int j = 0; j < subNameNode.size(); j++) {
+//					if (j == subNameNode.size() - 1) {
+//
+//					} else {
+//						for (int k = j + 1; k < subNameNode.size(); k++) {
+//							Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
+//							edgeList.add(edge);
+//						}
+//					}
+//				}
+//			}
+//
+//		}
+//
+//		for (int i = 0; i < listEdge.size(); i++) {
+//			// get first edge of edge table
+//			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
+//			if (type.contains("compound")) {
+//
+//			} else {
+//				DirectionType direction = getType(type);
+//				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+//				String[] subName = name.split(" ");
+//
+//				ArrayList<String> firstEdge = new ArrayList<>();
+//				ArrayList<String> secondEdge = new ArrayList<>();
+//				// set first array edge
+//				setAr(firstEdge, secondEdge, subName[0], 1);
+//				// set second array edge
+//				setAr(firstEdge, secondEdge, subName[subName.length - 1], 2);
+//				// Add edge
+//				swap(firstEdge, secondEdge, direction);
+//
+//			}
+//		}
 		for (int i = 0; i < listNode.size(); i++) {
 			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
 			if (subName.contains("container")) {
-
+				
 			} else {
 				List<String> subNameNode = new ArrayList<String>();
 				try {
@@ -454,25 +518,33 @@ public class Biomaker extends AbstractTask {
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
+				if(subNameNode != null) {
+					for (int j = 0; j < subNameNode.size(); j++) {
+						if (j == subNameNode.size() - 1) {
 
-				for (int j = 0; j < subNameNode.size(); j++) {
-					if (j == subNameNode.size() - 1) {
-
-					} else {
-						for (int k = j + 1; k < subNameNode.size(); k++) {
-							Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
-							edgeList.add(edge);
+						} else {
+							for (int k = j + 1; k < subNameNode.size(); k++) {
+								Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
+								edgeList.add(edge);
+							}
 						}
 					}
 				}
 			}
-
 		}
 
 		for (int i = 0; i < listEdge.size(); i++) {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-			if (type.contains("compound")) {
+			if(type == null) {
+				List<String> txtType =  cyTable.getRow(listEdge.get(i).getSUID()).get("direction", List.class);
+				DirectionType direction = getType(txtType);
+				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+				String[] subName = name.split(" ");
+				
+				Edge edge = new Edge(subName[0], subName[subName.length - 1], direction == DirectionType.DIRECTED ? 1:0, 1);
+				edgeList.add(edge);
+			}else if (type.contains("compound")) {
 
 			} else {
 				DirectionType direction = getType(type);
@@ -487,7 +559,6 @@ public class Biomaker extends AbstractTask {
 				setAr(firstEdge, secondEdge, subName[subName.length - 1], 2);
 				// Add edge
 				swap(firstEdge, secondEdge, direction);
-
 			}
 		}
 		// logger.info("Init OK!");//alert when complete!
@@ -716,45 +787,46 @@ public class Biomaker extends AbstractTask {
 		Path path = Paths.get(OUTPUT);
 		ArrayList<String> lines = new ArrayList<>();
 
-		lines.add("Node\tRCore\tHC\tList Label");
+		lines.add("Node\tRCore\tHC");
 		int i = 0;
 		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
 			if (i >= 10)
 				break;
 			
-			String label = "";
-			//get label
-			for (int k = 0; k < listNode.size(); k++) {
-				String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
-				if (subName.contains("container")) {
-
-				} else {
-					List<String> subNameNode = new ArrayList<String>();
-					try {
-						subNameNode = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_ID", List.class);
-						if(subNameNode.contains(entry.getKey())){
-							
-							List<String> listLabel = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_NODE_LABEL_LIST", List.class);
-							for(int o = 0; o< listLabel.size(); o++){
-								if(o == listLabel.size() - 1){
-									label +=listLabel.get(o).toString()+".";
-								}else{
-									label += listLabel.get(o).toString()+", ";
-								}
-								
-							}
-						}
-						
-					} catch (Exception e) {
-						JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			}		
+//			String label = "";
+//			//get label
+//			for (int k = 0; k < listNode.size(); k++) {
+//				String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
+//				if (subName.contains("container")) {
+//
+//				} else {
+//					List<String> subNameNode = new ArrayList<String>();
+//					try {
+//						subNameNode = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_ID", List.class);
+//						if(subNameNode.contains(entry.getKey())){
+//							
+//							List<String> listLabel = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_NODE_LABEL_LIST", List.class);
+//							for(int o = 0; o< listLabel.size(); o++){
+//								if(o == listLabel.size() - 1){
+//									label +=listLabel.get(o).toString()+".";
+//								}else{
+//									label += listLabel.get(o).toString()+", ";
+//								}
+//								
+//							}
+//						}
+//						
+//					} catch (Exception e) {
+//						JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
+//					}
+//				}
+//			}		
 			
 			for (Map.Entry<String, Double> entry1 : hcEntropy.entrySet()) {
 				if (entry1.getKey().equals(entry.getKey())) {
 					
-					lines.add(String.format("%s\t%d\t%9.8f\t%s", entry.getKey(), entry.getValue() + 1, entry1.getValue(),label));							
+//					lines.add(String.format("%s\t%d\t%9.8f\t%s", entry.getKey(), entry.getValue() + 1, entry1.getValue(),label));		
+					lines.add(String.format("%s\t%d\t%9.8f", entry.getKey(), entry.getValue() + 1, entry1.getValue()));	
 				}
 			}
 			i++;

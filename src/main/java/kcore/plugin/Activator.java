@@ -1,6 +1,7 @@
 package kcore.plugin;
 
 import java.util.Properties;
+import java.io.FileWriter;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -33,7 +34,14 @@ public class Activator extends AbstractCyActivator {
 	}
 
 	public void start(BundleContext bc) {
-
+		try {
+            FileWriter fw = new FileWriter("D:\\testout.txt");
+            fw.write("Welcome to java.");
+            fw.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        System.out.println("Success...");
 		CySwingApplication cySwingApplicationServiceRef = getService(bc, CySwingApplication.class);
 		CyApplicationManager cyApplicationManagerServiceRef = getService(bc, CyApplicationManager.class);
 		CyNetworkViewManager cyNetworkViewManagerServiceRef = getService(bc, CyNetworkViewManager.class);

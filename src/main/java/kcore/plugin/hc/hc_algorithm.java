@@ -93,7 +93,7 @@ public class hc_algorithm extends AbstractTask {
 		for (String temp : type) {
 			if (temp.contains("activation") || temp.contains("expression") || temp.contains("inhibition")
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
-					|| temp.contains("missing_interaction") || temp.contains("phosphorylation")) {
+					|| temp.contains("missing_interaction") || temp.contains("phosphorylation")  || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
 			} else if (temp.contains("dissociation")) {
 				direction = DirectionType.UNDIRECTED;
@@ -123,17 +123,19 @@ public class hc_algorithm extends AbstractTask {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 
-				for (int j = 0; j < subNameNode.size(); j++) {
-					if (j == subNameNode.size() - 1) {
+				if(subNameNode != null) {
+					for (int j = 0; j < subNameNode.size(); j++) {
+						if (j == subNameNode.size() - 1) {
 
-					} else {
-						for (int k = j + 1; k < subNameNode.size(); k++) {
-							Interaction edge = new Interaction(subNameNode.get(j), subNameNode.get(k), 1);
-							edge.setDirection(DirectionType.UNDIRECTED);
-							Links.add(edge);
+						} else {
+							for (int k = j + 1; k < subNameNode.size(); k++) {
+								Interaction edge = new Interaction(subNameNode.get(j), subNameNode.get(k), 1);
+								edge.setDirection(DirectionType.UNDIRECTED);
+								Links.add(edge);
 
-							setV.add(subNameNode.get(j));
-							setV.add(subNameNode.get(k));
+								setV.add(subNameNode.get(j));
+								setV.add(subNameNode.get(k));
+							}
 						}
 					}
 				}
@@ -144,7 +146,22 @@ public class hc_algorithm extends AbstractTask {
 		for (int i = 0; i < listEdge.size(); i++) {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-			if (type.contains("compound")) {
+			if(type == null) {
+				List<String> txtType = cyTable.getRow(listEdge.get(i).getSUID()).get("direction", List.class);
+				DirectionType direction = getType(txtType);
+				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+				String[] subName = name.split(" ");
+				Interaction edge = new Interaction(subName[0], subName[subName.length - 1], 1);
+				edge.setDirection(direction);
+				Links.add(edge);
+
+				setV.add(subName[0]);
+				setV.add(subName[subName.length - 1]);
+				if (direction == DirectionType.UNDIRECTED) {
+					unCount++;
+				}
+				
+			}else if (type.contains("compound")) {
 
 			} else {
 				DirectionType direction = getType(type);

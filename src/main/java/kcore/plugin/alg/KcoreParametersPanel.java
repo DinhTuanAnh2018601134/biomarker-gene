@@ -176,7 +176,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		// advancedConfigPanel.add(device,
 		// gridConstraint(1, 4, 1, 1, GridBagConstraints.NORTH,
 		// GridBagConstraints.HORIZONTAL));
-		cpuDevice = new JRadioButton("CPU");
+		cpuDevice = new JRadioButton("CPU1");
 
 		advancedConfigPanel.add(cpuDevice,
 				gridConstraint(0, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));

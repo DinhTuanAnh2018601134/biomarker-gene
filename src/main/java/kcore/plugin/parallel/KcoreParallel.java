@@ -126,25 +126,31 @@ public class KcoreParallel extends AbstractTask {
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
+				if(subNameNode != null) {
+					for (int j = 0; j < subNameNode.size(); j++) {
+						if (j == subNameNode.size() - 1) {
 
-				for (int j = 0; j < subNameNode.size(); j++) {
-					if (j == subNameNode.size() - 1) {
-
-					} else {
-						for (int k = j + 1; k < subNameNode.size(); k++) {
-							Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 1, 1);
-							edgeList.add(edge);
+						} else {
+							for (int k = j + 1; k < subNameNode.size(); k++) {
+								Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 1, 1);
+								edgeList.add(edge);
+							}
 						}
 					}
 				}
 			}
-
 		}
 
 		for (int i = 0; i < listEdge.size(); i++) {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-			if (type.contains("compound")) {
+			if(type == null) {
+				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+				String[] subName = name.split(" ");
+				Edge edge = new Edge(subName[0],subName[subName.length - 1], 1, 1);
+				edgeList.add(edge);
+			
+			}else if (type.contains("compound")) {
 
 			} else {
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();

@@ -114,7 +114,7 @@ public class RCore extends AbstractTask {
 		for (String temp : type) {
 			if (temp.contains("activation") || temp.contains("expression") || temp.contains("inhibition")
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
-					|| temp.contains("missing_interaction") || temp.contains("phosphorylation")) {
+					|| temp.contains("missing_interaction") || temp.contains("phosphorylation") || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
 			} else if (temp.contains("dissociation")) {
 				direction = DirectionType.UNDIRECTED;
@@ -145,7 +145,7 @@ public class RCore extends AbstractTask {
 		for (int i = 0; i < listNode.size(); i++) {
 			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
 			if (subName.contains("container")) {
-
+				
 			} else {
 				List<String> subNameNode = new ArrayList<String>();
 				try {
@@ -153,14 +153,15 @@ public class RCore extends AbstractTask {
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
+				if(subNameNode != null) {
+					for (int j = 0; j < subNameNode.size(); j++) {
+						if (j == subNameNode.size() - 1) {
 
-				for (int j = 0; j < subNameNode.size(); j++) {
-					if (j == subNameNode.size() - 1) {
-
-					} else {
-						for (int k = j + 1; k < subNameNode.size(); k++) {
-							Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
-							edgeList.add(edge);
+						} else {
+							for (int k = j + 1; k < subNameNode.size(); k++) {
+								Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
+								edgeList.add(edge);
+							}
 						}
 					}
 				}
@@ -170,7 +171,15 @@ public class RCore extends AbstractTask {
 		for (int i = 0; i < listEdge.size(); i++) {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-			if (type.contains("compound")) {
+			if(type == null) {
+				List<String> txtType =  cyTable.getRow(listEdge.get(i).getSUID()).get("direction", List.class);
+				DirectionType direction = getType(txtType);
+				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
+				String[] subName = name.split(" ");
+				
+				Edge edge = new Edge(subName[0], subName[subName.length - 1], direction == DirectionType.DIRECTED ? 1:0, 1);
+				edgeList.add(edge);
+			}else if (type.contains("compound")) {
 
 			} else {
 				DirectionType direction = getType(type);
@@ -185,9 +194,9 @@ public class RCore extends AbstractTask {
 				setAr(firstEdge, secondEdge, subName[subName.length - 1], 2);
 				// Add edge
 				swap(firstEdge, secondEdge, direction);
-
 			}
 		}
+		
 		logger.info("Init OK!");// alert when complete!
 	}
 
