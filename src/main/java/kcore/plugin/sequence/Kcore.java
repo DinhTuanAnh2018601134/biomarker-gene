@@ -5,10 +5,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -287,22 +291,9 @@ public class Kcore extends AbstractTask {
 		adjList.get(cyNode).add(cyNode2);
 	}
 
-	public void compute(TaskMonitor taskMonitor, double progressStart, double progressEnd) {
+	public void compute() {
+//		TaskMonitor taskMonitor, double progressStart, double progressEnd
 		int k = 0;
-		// int createdNets = 0;
-		//
-		// TaskIterator layoutingTaskIterator = new TaskIterator();
-		// for (int ii = 0, tries = 0; ii < vertexQueue.size() && createdNets <
-		// vertexQueue.size()
-		// && tries < vertexQueue.size() && !cancelled; ii++) {
-		// taskMonitor.setStatusMessage("Computing K-core " + (createdNets + 1)
-		// + "/"
-		// + vertexQueue.size());
-		// taskMonitor
-		// .setProgress(createdNets * 1.0 / vertexQueue.size() * (progressEnd -
-		// progressStart)
-		// + progressStart);
-		// System.gc();
 
 		while (vertexQueue.size() != 0) {
 			// tries++;
@@ -312,13 +303,7 @@ public class Kcore extends AbstractTask {
 			if (degrees.get(current.getVertex()) < current.getDegree()) {
 				continue;
 			}
-			// taskMonitor.setStatusMessage("Computing core max " + (createdNets
-			// + 1) + "/"
-			// + vertexQueue.size()+"...");
 			k = Math.max(k, degrees.get(current.getVertex()));
-			// taskMonitor.setStatusMessage("Get node and kcore " + (createdNets
-			// + 1) + "/"
-			// + vertexQueue.size()+"...");
 			kCore.put(current.getVertex(), Integer.valueOf(k));
 
 			for (String vertex : adjList.get(current.getVertex())) {
@@ -329,9 +314,7 @@ public class Kcore extends AbstractTask {
 				}
 
 			}
-			// createdNets++;
 		}
-		// }
 
 		this.finalCore = k;
 		// createdNets++;
@@ -367,7 +350,16 @@ public class Kcore extends AbstractTask {
 
 		taskMonitor.setProgress(0.4);
 		taskMonitor.setStatusMessage("Computing K-core ....");
-		compute(taskMonitor, 0.4, 0.8);
+
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    String strDate = sdfDate.format(now);
+	    System.out.println("time start: " + strDate);
+		compute();
+	    Date now1 = new Date();
+	    String strDate1 = sdfDate.format(now1);
+	    System.out.println("time end: " + strDate1);
+//		taskMonitor, 0.4, 0.8
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");

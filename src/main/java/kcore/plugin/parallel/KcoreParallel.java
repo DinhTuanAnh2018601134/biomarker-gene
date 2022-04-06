@@ -2,11 +2,15 @@ package kcore.plugin.parallel;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -257,14 +261,8 @@ public class KcoreParallel extends AbstractTask {
 			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue()));
 		}
 
-		// extend
-//		lines.add("Start\tEnd\tWeight");
-//		for (Edge edge : edgeList) {
-//			lines.add(String.format("%s\t%s\t%d", edge.getStartNode(), edge.getEndNode(), edge.getWeight()));
-//		}
-
 		Files.write(path, lines);
-		// writeXLSFile(sortedMap);
+
 	}
 
 	// push value to map
@@ -320,11 +318,41 @@ public class KcoreParallel extends AbstractTask {
 			for (int x : result) {
 				vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
 			}
-
-			// Arrays.stream(result).forEach(x -> {
-			// vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
-			// });
 		}
+//		while (vertexQueue.size() != 0) {
+//			Vertex current = vertexQueue.peek();
+//			String currentVertex = current.getVertex();
+//			if (degrees[vStringToInt.get(currentVertex)] != k) {
+//				continue;
+//			}
+//			vertexQueue.poll();
+//
+////			k = Math.max(k, degrees[vStringToInt.get(currentVertex)]);
+////
+////			kCore[vStringToInt.get(currentVertex)] = k;
+//
+//			int adjListV[] = convertIntegers(adjList.get(vStringToInt.get(currentVertex)));
+//			Range range = Range.create(adjListV.length);
+//			KCoreKernel kCoreKernel = new KCoreKernel(range, k);
+//			k++;
+//			kCoreKernel.setAdjListV(adjListV);
+////			kCoreKernel.setkCore(kCore);
+//			kCoreKernel.setDegrees(degrees);
+//
+//			kCoreKernel.execute(range);
+//
+//			degrees = kCoreKernel.getDegrees();
+//			int result[] = kCoreKernel.getResult();
+//			kCoreKernel.dispose();
+//
+//			for (int x : result) {
+//				vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
+//			}
+//
+//			// Arrays.stream(result).forEach(x -> {
+//			// vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
+//			// });
+//		}
 		System.out.println("K-Core: " + k);
 	}
 
@@ -336,45 +364,6 @@ public class KcoreParallel extends AbstractTask {
 		return ret;
 	}
 
-	// public void writeXLSFile(Map<String, Integer> result) throws IOException
-	// {
-	//
-	// // name of excel file
-	// String excelFileName = "result.xls";
-	//
-	// // name of sheet
-	// String sheetName = "Sheet1";
-	//
-	// HSSFWorkbook wb = new HSSFWorkbook();
-	// HSSFSheet sheet = wb.createSheet(sheetName);
-	// HSSFRow row;
-	// HSSFCell cell;
-	//
-	// // header
-	// row = sheet.createRow(0);
-	// cell = row.createCell(0);
-	// cell.setCellValue("Node");
-	// cell = row.createCell(1);
-	// cell.setCellValue("Rank");
-	//
-	// int index = 1;
-	// for (Map.Entry<String, Integer> entry : result.entrySet()) {
-	// row = sheet.createRow(index++);
-	//
-	// cell = row.createCell(0);
-	// cell.setCellValue(String.format("%s", entry.getKey()));
-	//
-	// cell = row.createCell(1);
-	// cell.setCellValue(String.format("%d", entry.getValue()));
-	// }
-	//
-	// FileOutputStream fileOut = new FileOutputStream(excelFileName);
-	//
-	// // write this workbook to an Outputstream.
-	// wb.write(fileOut);
-	// fileOut.flush();
-	// fileOut.close();
-	// }
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setProgress(0.0);
@@ -392,12 +381,19 @@ public class KcoreParallel extends AbstractTask {
 
 		taskMonitor.setProgress(0.4);
 		taskMonitor.setStatusMessage("Computing K-core GPU ....");
+		
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    String strDate = sdfDate.format(now);
+	    System.out.println("time start: " + strDate);
 		compute();
+	    Date now1 = new Date();
+	    String strDate1 = sdfDate.format(now1);
+	    System.out.println("time end: " + strDate1);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
 		writeFile();
-		// createColumn();
 
 		taskMonitor.setProgress(1.0);
 		taskMonitor.setStatusMessage("Compute success!");

@@ -1,6 +1,7 @@
 package kcore.plugin.rcore.parallel;
 
 import com.aparapi.Kernel;
+import com.aparapi.Range;
 
 public class RCoreKernel extends Kernel {
 
@@ -15,6 +16,7 @@ public class RCoreKernel extends Kernel {
 	private int inputCase;
 
 	private boolean temp[];
+	private Range range;
 
 	public RCoreKernel(int[] rCore, int[] adjListV, int[] reachability, int[] reachableSource, int[][] reachableList,
 			int inputCase) {

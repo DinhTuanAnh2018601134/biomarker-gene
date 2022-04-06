@@ -4,6 +4,7 @@ import com.aparapi.Kernel;
 import com.aparapi.Range;
 
 public class KCoreKernel extends Kernel {
+//	private int k;
 	private int adjListV[];
 	private int kCore[];
 	private int degrees[];
@@ -25,7 +26,20 @@ public class KCoreKernel extends Kernel {
 		} else {
 			temp[index] = -1;
 		}
-
+//		if (degrees[adjListV[index]] > k) {
+//			degrees[adjListV[index]] = degrees[adjListV[index]] - 1;
+//			if(degrees[adjListV[index]] == k+1) {
+//				temp[index] = adjListV[index];
+//			}
+//			else {
+//				temp[index] = -1;
+//			}
+//			if(degrees[adjListV[index]] <= k) {
+//				degrees[adjListV[index]] = degrees[adjListV[index]] + 1;
+//			}
+//		}else {
+//			temp[index] = -1;
+//		}
 	}
 
 	public int[] getAdjListV() {

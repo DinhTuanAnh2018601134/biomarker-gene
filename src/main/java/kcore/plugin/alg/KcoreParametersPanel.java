@@ -188,7 +188,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 			public void actionPerformed(ActionEvent event) {
 				if (cpuDevice.isSelected()) {
 					gpuDevice.setSelected(false);
-					;
 				} else {
 					gpuDevice.setSelected(true);
 				}
@@ -326,7 +325,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path);
 				alg.runKcore();
-				// putMessage("Kcore");
 			} else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
 					&& cpuDevice.isSelected() && !gpuDevice.isSelected()) {
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
@@ -346,7 +344,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path);
-				alg.runRcoreGPU();
+//				alg.runRcoreGPU();
+				alg.runHcParallel();
 				
 			} else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC) {
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,

@@ -22,7 +22,9 @@ import kcore.plugin.hc.DirectionType;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -86,28 +88,6 @@ public class RCore extends AbstractTask {
 		compute();
 		writeTextFile();
 	}
-
-	// public static void main(String[] args) throws Exception {
-	// int mb = 1024 * 1024;
-	// // Getting the runtime reference from system
-	// Runtime runtime = Runtime.getRuntime();
-	// System.out.println("##### Heap utilization statistics [MB] #####");
-	//
-	// RCore main = new RCore();
-	// long start = System.currentTimeMillis();
-	// main.init();
-	// main.readFile();
-	// main.loadData();
-	//// System.out.println(main.edgeList.size());
-	// main.compute();
-	// long end = System.currentTimeMillis();
-	// System.out.println("Time Executed: "+(end - start)+"ms");
-	// main.writeTextFile();
-	//
-	// // Print used memory
-	// System.out.println("Used Memory:" + (runtime.totalMemory() -
-	// runtime.freeMemory()) / mb);
-	// }
 	
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
@@ -242,23 +222,6 @@ public class RCore extends AbstractTask {
 		}
 	}
 
-	// read input.txt and convert edge list to adjacency list
-	// public void readFile() {
-	//
-	// Path path = Paths.get(inputFile);
-	//
-	// try (Stream<String> lines = Files.lines(path)) {
-	// Spliterator<String> lineSpliterator = lines.spliterator();
-	// Spliterator<Edge> edgeSpliterator = new EdgeSpliterator(lineSpliterator);
-	//
-	// Stream<Edge> edgeStream = StreamSupport.stream(edgeSpliterator, false);
-	// edgeStream.forEach(edge -> edgeList.add(edge));
-	//
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
-
 	// load data
 	public void loadData() {
 		for (Edge edge : edgeList) {
@@ -291,12 +254,6 @@ public class RCore extends AbstractTask {
 			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue() + 1));
 		}
 
-		// extend
-//		lines.add("Start\tEnd\tWeight");
-//		for (Edge edge : edgeList) {
-//			lines.add(String.format("%s\t%s\t%d", edge.getStartNode(), edge.getEndNode(), edge.getWeight()));
-//		}
-
 		Files.write(path, lines);
 	}
 
@@ -319,10 +276,6 @@ public class RCore extends AbstractTask {
 			adjList.put(start, new HashSet<>());
 		}
 		adjList.get(start).add(end);
-		// if (!adjList.containsKey(end)) {
-		// adjList.put(end, new HashSet<>());
-		// }
-		// adjList.get(end).add(start);
 	}
 
 	public int countChildNode(String node, String source) {
@@ -344,38 +297,40 @@ public class RCore extends AbstractTask {
 		return count;
 	}
 
-	public int countChildNodeSe(String node) {
-		Stack<String> s = new Stack<>();
-
-		int count = 0;
-
-		s.push(node);
-
-		while (!s.isEmpty()) {
-			String current = s.pop();
-
-			if (visited.contains(current)) {
-				continue;
-			}
-
-			visited.add(current);
-
-			if (adjList.get(current) != null) {
-				for (String vertex : adjList.get(current)) {
-					s.push(vertex);
-					if (!visited.contains(vertex)) {
-						count = count + 1;
-						pushMapS(reachableList, node, vertex);
-					}
-				}
-			}
-		}
-
-		return count;
-	}
+//	public int countChildNodeSe(String node) {
+//		Stack<String> s = new Stack<>();
+//
+//		int count = 0;
+//
+//		s.push(node);
+//
+//		while (!s.isEmpty()) {
+//			String current = s.pop();
+//
+//			if (visited.contains(current)) {
+//				continue;
+//			}
+//
+//			visited.add(current);
+//
+//			if (adjList.get(current) != null) {
+//				for (String vertex : adjList.get(current)) {
+//					s.push(vertex);
+//					if (!visited.contains(vertex)) {
+//						count = count + 1;
+//						pushMapS(reachableList, node, vertex);
+//					}
+//				}
+//			}
+//		}
+//
+//		return count;
+//	}
 
 	// compute
 	public void compute() {
+		System.out.println("reachability: " + reachability);
+		System.out.println("reachableList: " + reachableList);
 		int r = 0;
 		// BFS traverse
 		while (!vertexQueue.isEmpty()) {
@@ -416,53 +371,50 @@ public class RCore extends AbstractTask {
 			}
 
 		}
-		// for (Map.Entry<String, Integer> entry : reachability.entrySet()) {
-		// System.out.println(entry.getKey() + " > " + entry.getValue());
-		// }
 		System.out.println("R-Core: " + r);
 	}
 
-	public void writeXLSFile() throws Exception {
-
-		// sort map by value
-		Map<String, Integer> sortedMap = MapComparator.sortByValue(rCore);
-
-		// name of excel file
-		String excelFileName = outputFile + "/result.xls";
-
-		// name of sheet
-		String sheetName = "Sheet1";
-
-		HSSFWorkbook wb = new HSSFWorkbook();
-		HSSFSheet sheet = wb.createSheet(sheetName);
-		HSSFRow row;
-		HSSFCell cell;
-
-		// header
-		row = sheet.createRow(0);
-		cell = row.createCell(0);
-		cell.setCellValue("Node");
-		cell = row.createCell(1);
-		cell.setCellValue("Rank");
-
-		int index = 1;
-		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-			row = sheet.createRow(index++);
-
-			cell = row.createCell(0);
-			cell.setCellValue(String.format("%s", entry.getKey()));
-
-			cell = row.createCell(1);
-			cell.setCellValue(String.format("%d", entry.getValue()));
-		}
-
-		FileOutputStream fileOut = new FileOutputStream(excelFileName);
-
-		// write this workbook to an Outputstream.
-		wb.write(fileOut);
-		fileOut.flush();
-		fileOut.close();
-	}
+//	public void writeXLSFile() throws Exception {
+//
+//		// sort map by value
+//		Map<String, Integer> sortedMap = MapComparator.sortByValue(rCore);
+//
+//		// name of excel file
+//		String excelFileName = outputFile + "/result.xls";
+//
+//		// name of sheet
+//		String sheetName = "Sheet1";
+//
+//		HSSFWorkbook wb = new HSSFWorkbook();
+//		HSSFSheet sheet = wb.createSheet(sheetName);
+//		HSSFRow row;
+//		HSSFCell cell;
+//
+//		// header
+//		row = sheet.createRow(0);
+//		cell = row.createCell(0);
+//		cell.setCellValue("Node");
+//		cell = row.createCell(1);
+//		cell.setCellValue("Rank");
+//
+//		int index = 1;
+//		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+//			row = sheet.createRow(index++);
+//
+//			cell = row.createCell(0);
+//			cell.setCellValue(String.format("%s", entry.getKey()));
+//
+//			cell = row.createCell(1);
+//			cell.setCellValue(String.format("%d", entry.getValue()));
+//		}
+//
+//		FileOutputStream fileOut = new FileOutputStream(excelFileName);
+//
+//		// write this workbook to an Outputstream.
+//		wb.write(fileOut);
+//		fileOut.flush();
+//		fileOut.close();
+//	}
 
 	public String getInputFile() {
 		return inputFile;
@@ -513,7 +465,15 @@ public class RCore extends AbstractTask {
 
 		taskMonitor.setProgress(0.4);
 		taskMonitor.setStatusMessage("Computing R-core ....");
+
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    String strDate = sdfDate.format(now);
+	    System.out.println("time start: " + strDate);
 		compute();
+	    Date now1 = new Date();
+	    String strDate1 = sdfDate.format(now1);
+	    System.out.println("time end: " + strDate1);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");

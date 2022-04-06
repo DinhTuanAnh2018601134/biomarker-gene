@@ -3,7 +3,7 @@ package kcore.plugin.alg.param;
 public enum NetFilteringMethod {
 	FILTER_BY_KCORE("K-Core"),
 	FILTER_BY_RCORE("R-Core"),
-	FILTER_BY_HC("Network Entropy"),
+	FILTER_BY_HC("Hierarchical closeness"),
 	FILTER_BY_BIO("Biomarker genes");
 	
 	private String text;

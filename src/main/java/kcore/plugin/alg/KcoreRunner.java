@@ -8,6 +8,7 @@ import javax.swing.JOptionPane;
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.biomarker.Biomaker;
 import kcore.plugin.hc.hc_algorithm;
+import kcore.plugin.hc_parallel.hc_algorithm_parallel;
 import kcore.plugin.parallel.KcoreParallel;
 import kcore.plugin.rcore.parallel.RcoreParallel;
 import kcore.plugin.rcore.sequence.RCore;
@@ -110,6 +111,25 @@ public class KcoreRunner {
 	public void runHc() {
 		try {
 			hc_algorithm alg = new hc_algorithm(params,this.path);
+			TaskFactory factory = new TaskFactory(alg);
+			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
+			alg.cancel();
+		} catch (final Exception e) {
+			e.printStackTrace(System.err);
+			JOptionPane.showMessageDialog(ServicesUtil.cySwingApplicationServiceRef.getJFrame(),
+					"Error running HC(1)!  " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		finally{
+			JOptionPane.showMessageDialog(null, "Compute HC Success, open text file to see the result!", "Infor",
+					JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+	}
+	public void runHcParallel() {
+		try {
+			hc_algorithm_parallel alg = new hc_algorithm_parallel(params,this.path);
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			alg.cancel();

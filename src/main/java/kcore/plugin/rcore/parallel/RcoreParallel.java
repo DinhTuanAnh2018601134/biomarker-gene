@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,18 +93,6 @@ public class RcoreParallel extends AbstractTask {
 		this.params = params;
 		this.OUTPUT = path;
 	}
-
-	// public static void main(String[] args) throws Exception {
-	// RcoreParallel main = new RcoreParallel();
-	// main.init();
-	// main.readFile();
-	// main.loadData();
-	// long start = System.currentTimeMillis();
-	// main.compute();
-	// long end = System.currentTimeMillis();
-	// System.out.println(end - start);
-	// main.writeTextFile();
-	// }
 	
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
@@ -329,16 +319,10 @@ public class RcoreParallel extends AbstractTask {
 
 		// sort map by value
 		Map<String, Integer> sortedMap = MapComparator.sortByValue(rCoreResult);
-		lines.add("Node2\tRCore");
+		lines.add("Node\tRCore");
 		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
 			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue()));
 		}
-
-		// extend
-//		lines.add("Start\tEnd\tWeight");
-//		for (Edge edge : edgeList) {
-//			lines.add(String.format("%s\t%s\t%d", edge.getStartNode(), edge.getEndNode(), edge.getWeight()));
-//		}
 
 		Files.write(path, lines);
 	}
@@ -468,10 +452,6 @@ public class RcoreParallel extends AbstractTask {
 				for (int x : result) {
 					vertexQueue.add(new Vertex(vStringArray[x], reachLevel[x]));
 				}
-
-				// Arrays.stream(result).forEach(x -> {
-				// vertexQueue.add(new Vertex(vStringArray[x], reachLevel[x]));
-				// });
 			}
 
 		}
@@ -515,13 +495,21 @@ public class RcoreParallel extends AbstractTask {
 
 		taskMonitor.setProgress(0.4);
 		taskMonitor.setStatusMessage("Computing R-core GPU ....");
+		
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    String strDate = sdfDate.format(now);
+	    System.out.println("time start: " + strDate);
 		compute();
-
-		taskMonitor.setProgress(0.8);
+	    Date now1 = new Date();
+	    String strDate1 = sdfDate.format(now1);
+	    System.out.println("time end: " + strDate1);
+		
+		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
 		writeTextFile();
 
-		taskMonitor.setProgress(0.9);
+//		taskMonitor.setProgress(0.9);
 		// JOptionPane.showMessageDialog(null,
 		// "Compute R-core GPU Success, open text file to see the result!",
 		// "Infor", JOptionPane.INFORMATION_MESSAGE);

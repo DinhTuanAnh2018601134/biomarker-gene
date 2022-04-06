@@ -76,14 +76,6 @@ public class hc_algorithm extends AbstractTask {
 
 	}
 
-	// public static void main(String[] args) throws Exception {
-	// hc_algorithm hca = new hc_algorithm();
-	// hca.OnComputingHcEntropyFolderCommand();
-	// hca.writeFile();
-	// // hca.d
-	//
-	// }
-
 	public void execute() {
 		OnComputingHcEntropyFolderCommand();
 	}
@@ -248,8 +240,6 @@ public class hc_algorithm extends AbstractTask {
 		lines.add(String.format("%s\t%.5f", "HC Entropy", hcE));
 
 		Files.write(path, lines);
-
-		// writeXLSFile(sortedMap);
 	}
 
 	public void ReadSignalingNetworkFile() {
@@ -287,30 +277,14 @@ public class hc_algorithm extends AbstractTask {
 		Map<String, Triple<Double, Double, Double>> trancen = HierarchicalClosenessCentrality();
 		Map<String, Double> hc = new HashMap<String, Double>();
 		for (String s : trancen.keySet()) {
-			// hc.put(s, trancen.get(s).getFirst());
-			// System.out.println("First: " + trancen.get(s).getFirst() + "
-			// Second: " + trancen.get(s).getSecond()
-			// + " Third: " + trancen.get(s).getThird());
 			hc.put(s, trancen.get(s).getFirst());
 		}
 
 		for (Map.Entry<String, Double> entry : hc.entrySet()) {
 			hcEntropy.put(entry.getKey(), entry.getValue());
-			// System.out.println("Node: "+entry.getKey()+" hc: "+
-			// entry.getValue());
 		}
 
 		hcE = EntropyOfNodes(hc);
-		// System.out.println("HC Entropy: " + hcE);
-		//
-		// // Degree entropy
-		// HashMap<String, Double> Totaldegree = new HashMap<String, Double>();
-		// for (Node n : Nodes) {
-		// Totaldegree.put(n.name, n.TotalDegree);
-		//
-		// }
-		// double degreeEntropy = EntropyOfNodes(Totaldegree);
-		// System.out.println("Degree Entropy: " + degreeEntropy);
 	}
 
 	public static double EntropyOfNodes(Map<String, Double> pNodeList) {
@@ -361,39 +335,7 @@ public class hc_algorithm extends AbstractTask {
 	 *            The node list with centrality value
 	 * @return X entropy of nodes
 	 */
-	// public static double EntropyOfNodes(Map<String, Double> pNodeList) {
-	// ArrayList<EntropyModel> result = new ArrayList<>();
-	// for (Map.Entry<String, Double> entry : pNodeList.entrySet()) {
-	// EntropyModel model = new EntropyModel();
-	// model.setKey(entry.getKey());
-	// model.setValue(entry.getValue());
-	// result.add(model);
-	// }
-	// int n = pNodeList.keySet().size();
-	// double sum = 0;
-	// Map<Double, List<EntropyModel>> counting = result.stream()
-	// .collect(Collectors.groupingBy(EntropyModel::getValue));
-	// Map<Double, Double> temp = new HashMap<Double, Double>();
-	// for (Map.Entry<Double, List<EntropyModel>> entry : counting.entrySet()) {
-	// // System.out.println("key: "+entry.getKey()+" value: "+ (double)
-	// // (entry.getValue().size() / n));
-	// temp.put(entry.getKey(), (double) (entry.getValue().size() / n));
-	// }
-	// // get sum
-	// for (Map.Entry<Double, Double> entry : temp.entrySet()) {
-	// // System.out.println("key: "+entry.getValue()+" value:
-	// // "+(Math.log(entry.getValue()) / Math.log(2)));
-	// double x = (double) (Math.log(entry.getValue()) / Math.log(2));
-	// sum = sum + (entry.getValue() * x);
-	// }
-	//
-	// // double entropy = -(from p in pNodeList group p by p.Value into g
-	// // select new {groupID = g.Key, p = (double)g.Count() / n}).Sum(t -> t.p
-	// // * Math.log(t.p, 2));
-	// // return entropy / Math.Log(n, 2);
-	// return sum;
-	// }
-
+	
 	/**
 	 * Arc degree = in-degree + out-degree + undirected-degree
 	 */
@@ -513,17 +455,6 @@ public class hc_algorithm extends AbstractTask {
 			indexToNode.put(i, temp);
 			i++;
 		}
-		// System.out.print("------------------------------");
-		// System.out.print("Node to index: ");
-		// for (Map.Entry<String, Integer> entry : nodeToIndex.entrySet()) {
-		// System.out.println("Node: "+entry.getKey()+" index:
-		// "+entry.getValue()); //nodeToIndex.put(Nodes.get(i).getName(), i);
-		// }
-		// System.out.print("index to Node: ");
-		// for (Map.Entry<Integer, String> entry : indexToNode.entrySet()) {
-		// System.out.println("Index: "+entry.getKey()+" node:
-		// "+entry.getValue()); //nodeToIndex.put(Nodes.get(i).getName(), i);
-		// }
 	}
 
 	private void FillInteractionToAdjacentList(Map<Integer, HashMap<Integer, Double>> Ma, Interaction inter, int row,
