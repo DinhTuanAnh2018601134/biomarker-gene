@@ -9,7 +9,6 @@ kcore\plugin\rcore\parallel\Edge.class
 kcore\plugin\sequence\Vertex.class
 kcore\plugin\ui\UI.class
 kcore\plugin\ui\KcorePanelComponent.class
-kcore\plugin\alg\KcoreParametersPanel$4.class
 kcore\plugin\biomarker\Edge.class
 kcore\plugin\rcore\sequence\MapComparator$1.class
 kcore\plugin\ui\NetworkSelectorPanel.class

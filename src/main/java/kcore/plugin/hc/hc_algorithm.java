@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -534,7 +535,14 @@ public class hc_algorithm extends AbstractTask {
 
 		taskMonitor.setProgress(0.4);
 		taskMonitor.setStatusMessage("Computing HC ....");
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    String strDate = sdfDate.format(now);
+	    System.out.println("time start: " + strDate);
 		execute();
+	    Date now1 = new Date();
+	    String strDate1 = sdfDate.format(now1);
+	    System.out.println("time end: " + strDate1);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");

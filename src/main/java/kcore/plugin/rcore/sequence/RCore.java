@@ -139,6 +139,7 @@ public class RCore extends AbstractTask {
 
 						} else {
 							for (int k = j + 1; k < subNameNode.size(); k++) {
+//								int weight = 
 								Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
 								edgeList.add(edge);
 							}
@@ -330,7 +331,7 @@ public class RCore extends AbstractTask {
 	// compute
 	public void compute() {
 		System.out.println("reachability: " + reachability);
-		System.out.println("reachableList: " + reachableList);
+//		System.out.println("reachableList: " + reachableList);
 		int r = 0;
 		// BFS traverse
 		while (!vertexQueue.isEmpty()) {

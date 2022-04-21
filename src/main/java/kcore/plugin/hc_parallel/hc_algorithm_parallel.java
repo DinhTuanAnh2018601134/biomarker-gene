@@ -16,14 +16,12 @@ import org.cytoscape.work.TaskMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aparapi.Kernel;
 import com.aparapi.Range;
+import com.aparapi.device.Device;
 
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.hc.DirectionType;
-import kcore.plugin.rcore.sequence.Edge;
-import kcore.plugin.rcore.sequence.MapComparator;
-import kcore.plugin.rcore.sequence.RCore;
-import kcore.plugin.rcore.sequence.Vertex;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -46,11 +45,17 @@ import java.util.stream.StreamSupport;
 import javax.swing.JOptionPane;
 
 public class hc_algorithm_parallel extends AbstractTask {
+	private static final Logger logger = LoggerFactory.getLogger(hc_algorithm_parallel.class);
+	static {
+		System.setProperty("com.aparapi.executionMode", "JTP");
+		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	}
 	// path to input/output file
 		private String inputFile;
 		private String outputFile;
 
-		private static final Logger logger = LoggerFactory.getLogger(RCore.class);
 		private CyNetwork net;
 		private CyTable cyTable;
 		private List<CyEdge> listEdge;
@@ -62,11 +67,13 @@ public class hc_algorithm_parallel extends AbstractTask {
 		// list to store edges
 		private List<Edge> edgeList;
 		// map to store r-core
-		private Map<String, Integer> rCore;
+		private Map<String, Double> hc;
 		// map to store adjacency list
 		private Map<String, Vector<String>> adjList;
 		// map to store reachability
 		private Map<String, Integer> reachability;
+		// array to store vert list
+		private ArrayList<Vert> vertList;
 		// map to store closeness
 		private Map<String, Double> closeness;
 		// vertex queue
@@ -77,7 +84,7 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 		private static Map<String, Set<String>> reachableList;
 
-		public Map<String, Integer> sortedMap;
+		public Map<String, Double> sortedMap;
 
 		public hc_algorithm_parallel() {
 			init();
@@ -112,13 +119,15 @@ public class hc_algorithm_parallel extends AbstractTask {
 		// initialize
 		public void init() {
 			edgeList = new ArrayList<>();
-			rCore = new HashMap<>();
+			hc = new HashMap<>();
 			adjList = new HashMap<>();
 			reachability = new HashMap<>();
 			vertexQueue = new PriorityQueue<>();
 			vertexList = new HashSet<>();
 			visited = new HashSet<>();
 			reachableList = new HashMap<>();
+			vertList = new ArrayList<>(); 
+			closeness = new HashMap<>();
 
 			this.net = params.getCyNetwork();
 			cyTable = this.net.getDefaultEdgeTable();
@@ -226,6 +235,30 @@ public class hc_algorithm_parallel extends AbstractTask {
 				}
 			}
 		}
+		public void ShortestP(Vert sourceV) {
+	        sourceV.setDist(0);
+	        PriorityQueue<Vert> priorityQueue = new PriorityQueue<>();
+	        priorityQueue.add(sourceV);
+	        sourceV.setVisited(true);
+
+	        while (!priorityQueue.isEmpty()) {
+	            Vert actualVertex = priorityQueue.poll();
+	            for (Edge1 edge : actualVertex.getList()) {
+	                Vert v = edge.getTargetVert();
+
+	                if (!v.Visited()) {
+	                    double newDistance = actualVertex.getDist() + edge.getWeight();
+	                    if (newDistance < v.getDist()) {
+	                        priorityQueue.remove(v);
+	                        v.setDist(newDistance);
+	                        v.setPr(actualVertex);
+	                        priorityQueue.add(v);
+	                    }
+	                }
+	            }
+	            actualVertex.setVisited(true);
+	        }
+	    }
 
 		// load data
 		public void loadData() {
@@ -234,45 +267,54 @@ public class hc_algorithm_parallel extends AbstractTask {
 				vertexList.add(edge.getStartNode());
 				vertexList.add(edge.getEndNode());
 			}
-			int r[] = new int[vertexList.size()];
-			int i=0;
 			
-//			for (String vertex : vertexList) {
-				visited.clear();
-//				int n = countChildNode(vertex, vertex);
-//				reachability.put(vertex, n);
-				Range range = Range.create(vertexList.size());
-				hcKernel hc = new hcKernel(range);
-				hc.setAdjList(adjList);
-				hc.setVertextList(vertexList);
-				hc.setVisited(visited);
-				
-				hc.execute(range);
-				adjList = hc.getAdjList();
-				r = hc.getReachability();
-				hc.dispose();
-//			}
-			for (String vertex : vertexList) {
-				reachability.put(vertex, r[i]);
-				i++;
-			}
+			Range range = Range.create(vertexList.size());
+			String[] vertexs = new String[vertexList.size()];
+			vertexList.toArray(vertexs);
+			
+			//compute reachability
+			hcKernel_reachability hcRea = new hcKernel_reachability();
+			hcRea.setAdjList(adjList);
+			hcRea.setVertextList(vertexs);
+			
+			hcRea.execute(range);
+			reachability = hcRea.getReachability();
+			reachableList = hcRea.getReachableList();
+			hcRea.dispose();
+			
+			//compute closeness
+			hcKernel_closeness hcClo = new hcKernel_closeness();
+			hcClo.setVertexList(vertexList);
+			hcClo.setAdjList(adjList);
+			hcClo.setReachableList(reachableList);
+			hcClo.execute(range);
+			closeness = hcClo.getCloseness();
+			hcClo.dispose();
 
 			for (Map.Entry<String, Integer> entry : reachability.entrySet()) {
-				// System.out.println(entry.getKey()+" "+entry.getValue());
 				vertexQueue.add(new Vertex(entry.getKey(), entry.getValue()));
+			}
+		}
+		public void addNeighbour(Vert vert) {
+			Vector<String> neighbour  = adjList.get(vert.getName());
+			if(neighbour != null) {
+				for (Vert v : vertList) {
+					if(neighbour.contains(v.getName())) {
+						vert.addNeighbour(new Edge1(1, vert, v));
+					}
+				}
 			}
 		}
 
 		// write result to output.txt
 		public void writeTextFile() throws Exception {
-
 			Path path = Paths.get(outputFile);
 			List<String> lines = new ArrayList<>();
 			// sort map by value
-			sortedMap = MapComparator.sortByValue(rCore);
-			lines.add("Node\tRCore");
-			for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-				lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue() + 1));
+			sortedMap = MapComparator.sortByValue(hc);
+			lines.add("Node\tHC");
+			for (Map.Entry<String, Double> entry : sortedMap.entrySet()) {
+				lines.add(String.format("%s\t%f", entry.getKey(), entry.getValue() + 1));
 			}
 
 			Files.write(path, lines);
@@ -320,49 +362,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 		// compute
 		public void compute() {
-			System.out.println("reachability: " + reachability);
-			System.out.println("reachableList: " + reachableList);
-//			int r = 0;
-//			// BFS traverse
-//			while (!vertexQueue.isEmpty()) {
-//				Vertex current = vertexQueue.poll();
-//				if (reachability.get(current.getVertex()) < current.getDegree()) {
-//					continue;
-//				}
-//
-//				r = Math.max(r, reachability.get(current.getVertex()));
-//
-//				rCore.put(current.getVertex(), Integer.valueOf(r));
-//				// sequentially
-//				if (adjList.get(current.getVertex()) != null && reachability.get(current.getVertex()) > 0) {
-//
-//					for (String vertex : adjList.get(current.getVertex())) {
-//						if (!rCore.containsKey(vertex) && reachability.get(vertex) != null) {
-//							reachability.put(vertex, reachability.get(vertex) - 1);
-//
-//							for (Map.Entry<String, Set<String>> entry : reachableList.entrySet()) {
-//								if (entry.getValue().contains(vertex)) {
-//									reachability.put(entry.getKey(), reachability.get(entry.getKey()) - 1);
-//
-//									vertexQueue.add(new Vertex(entry.getKey(), reachability.get(entry.getKey())));
-//								}
-//
-//							}
-//							vertexQueue.add(new Vertex(vertex, reachability.get(vertex)));
-//						}
-//					}
-//
-//				} else if (reachability.get(current.getVertex()) == 0) {
-//					for (Map.Entry<String, Set<String>> entry : reachableList.entrySet()) {
-//						if (entry.getValue().contains(current.getVertex())) {
-//							reachability.put(entry.getKey(), reachability.get(entry.getKey()) - 1);
-//							vertexQueue.add(new Vertex(entry.getKey(), reachability.get(entry.getKey())));
-//						}
-//					}
-//				}
-//
-//			}
-//			System.out.println("R-Core: " + r);
+			System.out.println("reachability ss: " + reachability);
+			System.out.println("clossness: " + closeness);
+			Set<String> nodeList = reachability.keySet();
+			for (String node : nodeList) {
+				hc.put(node, (reachability.get(node) + closeness.get(node)));
+			}
 		}
 
 		public String getInputFile() {
@@ -410,19 +415,19 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 			taskMonitor.setProgress(0.3);
 			taskMonitor.setStatusMessage("Load data ....");
-			loadData();
-
-			taskMonitor.setProgress(0.4);
-			taskMonitor.setStatusMessage("Computing R-core ....");
-
 			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 		    Date now = new Date();
 		    String strDate = sdfDate.format(now);
 		    System.out.println("time start: " + strDate);
-			compute();
+			loadData();
 		    Date now1 = new Date();
 		    String strDate1 = sdfDate.format(now1);
 		    System.out.println("time end: " + strDate1);
+		    
+			taskMonitor.setProgress(0.4);
+			taskMonitor.setStatusMessage("Computing R-core ....");
+
+			compute();
 
 			taskMonitor.setProgress(0.9);
 			taskMonitor.setStatusMessage("Write result....");

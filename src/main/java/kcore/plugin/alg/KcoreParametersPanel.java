@@ -22,9 +22,15 @@ import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTabbedPane;
+import javax.swing.border.EmptyBorder;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 
 import org.cytoscape.application.swing.events.CytoPanelComponentSelectedEvent;
 import org.cytoscape.application.swing.events.CytoPanelComponentSelectedListener;
@@ -39,6 +45,7 @@ import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.alg.param.NetFilteringMethod;
 import kcore.plugin.service.ServicesUtil;
 import kcore.plugin.ui.NetworkSelectorPanel;
+import java.awt.EventQueue;
 
 public class KcoreParametersPanel extends JPanel implements ColumnCreatedListener, CytoPanelComponentSelectedListener {
 
@@ -52,6 +59,10 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 	private JRadioButton gpuDevice;
 	private JRadioButton cpuDevice;
+	
+	private final ButtonGroup buttonGroupProcess = new ButtonGroup();
+	private final ButtonGroup buttonGroupMethod = new ButtonGroup();
+	private final ButtonGroup buttonGroupProcessMethod = new ButtonGroup();
 
 	public KcoreParametersPanel(NetworkSelectorPanel gtaNetworkSelectorPanel) {
 		this.networkSelectorPanel = gtaNetworkSelectorPanel;
@@ -67,10 +78,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 		// Set global parameters
 		this.setLayout(new BorderLayout());
-		// this.setMinimumSize(new Dimension(320, 420));
 		this.setPreferredSize(new Dimension(32, 42));
-
-		// this.tableModel = new AttrSelectionTableModel();
 
 		initComponents();
 	}
@@ -85,18 +93,16 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5); // 5-5-5-5
 		add(networkSelectorPanel, gridBagConstraints);
-
+//
 		initAttrSelectionTable();
-
+//
 		javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
 		buttonPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
 		javax.swing.JButton runButton = new javax.swing.JButton("Run");
 		runButton.addActionListener(new FindModulesAction());
-		// aboutButton.setPreferredSize(new java.awt.Dimension(67, 23));
 		buttonPanel.add(runButton, gridBagConstraints);
 
-		// add(runButton, gridBagConstraints);
 		add(buttonPanel, gridBagConstraints);
 		// demo temp panel
 		// demo
@@ -119,7 +125,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 	}
 
 	private void initAttrSelectionTable() {
-
+		
 		java.awt.GridBagConstraints gridBagConstraints;
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
@@ -131,18 +137,96 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		javax.swing.JPanel bothAttributeSelectorPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
 
 		javax.swing.JPanel configPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
-		// javax.swing.JPanel jPanel = new javax.swing.JPanel(new
-		// java.awt.GridBagLayout());
 		bothAttributeSelectorPanel.setPreferredSize(new Dimension(32, 20));
 
 		javax.swing.JPanel advancedConfigPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
 		advancedConfigPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Advanced Options"));
-		// advancedConfigPanel.setPreferredSize(new Dimension(320, 200));
+		//new content
+//		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+//		tabbedPane.setBounds(5, 5, 424, 245);
+//		advancedConfigPanel.add(tabbedPane);
+//		
+//		JPanel panel = new JPanel();
+//		tabbedPane.addTab("Biomaker gene", null, panel, null);
+//		panel.setLayout(null);
+//		
+//		JRadioButton rdbtnNewRadioButton = new JRadioButton("CPU");
+//		buttonGroupProcess.add(rdbtnNewRadioButton);
+//		rdbtnNewRadioButton.setBounds(23, 33, 109, 23);
+//		panel.add(rdbtnNewRadioButton);
+//		
+//		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("GPU");
+//		buttonGroupProcess.add(rdbtnNewRadioButton_1);
+//		rdbtnNewRadioButton_1.setBounds(23, 71, 109, 23);
+//		panel.add(rdbtnNewRadioButton_1);
+//		
+//		JButton btnNewButton_1 = new JButton("RUN");
+//		btnNewButton_1.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//			}
+//		});
+//		btnNewButton_1.setBounds(170, 183, 89, 23);
+//		panel.add(btnNewButton_1);
+//		
+//		JRadioButton rdbtnNewRadioButton_8 = new JRadioButton("Sequence");
+//		buttonGroupProcess.add(rdbtnNewRadioButton_8);
+//		rdbtnNewRadioButton_8.setBounds(23, 111, 109, 23);
+//		panel.add(rdbtnNewRadioButton_8);
+//		
+//		JPanel panel_1 = new JPanel();
+//		tabbedPane.addTab("Extend function", null, panel_1, null);
+//		panel_1.setLayout(null);
+//		
+//		JRadioButton rdbtnNewRadioButton_2 = new JRadioButton("K core");
+//		buttonGroupMethod.add(rdbtnNewRadioButton_2);
+//		rdbtnNewRadioButton_2.setBounds(24, 54, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_2);
+//		
+//		JRadioButton rdbtnNewRadioButton_3 = new JRadioButton("R core");
+//		buttonGroupMethod.add(rdbtnNewRadioButton_3);
+//		rdbtnNewRadioButton_3.setBounds(24, 88, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_3);
+//		
+//		JRadioButton rdbtnNewRadioButton_4 = new JRadioButton("HC");
+//		buttonGroupMethod.add(rdbtnNewRadioButton_4);
+//		rdbtnNewRadioButton_4.setBounds(24, 127, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_4);
+//		
+//		JRadioButton rdbtnNewRadioButton_5 = new JRadioButton("CPU");
+//		buttonGroupProcessMethod.add(rdbtnNewRadioButton_5);
+//		rdbtnNewRadioButton_5.setBounds(153, 54, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_5);
+//		
+//		JRadioButton rdbtnNewRadioButton_6 = new JRadioButton("GPU");
+//		buttonGroupProcessMethod.add(rdbtnNewRadioButton_6);
+//		rdbtnNewRadioButton_6.setBounds(153, 88, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_6);
+//		
+//		JLabel lblNewLabel = new JLabel("Choose method");
+//		lblNewLabel.setBounds(24, 33, 94, 14);
+//		panel_1.add(lblNewLabel);
+//		
+//		JLabel lblNewLabel_1 = new JLabel("Process");
+//		lblNewLabel_1.setBounds(153, 33, 109, 14);
+//		panel_1.add(lblNewLabel_1);
+//		
+//		JButton btnNewButton = new JButton("RUN");
+//		btnNewButton.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//			}
+//		});
+//		btnNewButton.setBounds(170, 183, 89, 23);
+//		panel_1.add(btnNewButton);
+//		
+//		JRadioButton rdbtnNewRadioButton_7 = new JRadioButton("Sequence");
+//		buttonGroupProcessMethod.add(rdbtnNewRadioButton_7);
+//		rdbtnNewRadioButton_7.setBounds(153, 127, 109, 23);
+//		panel_1.add(rdbtnNewRadioButton_7);
+		
+		
 		// content
 		advancedConfigPanel.add(new java.awt.Label("Choose method:"),
 				gridConstraint(0, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
-		// gridConstraint(0, 0, 1, 2, GridBagConstraints.CENTER,
-		// GridBagConstraints.HORIZONTAL));
 		netFilteringMethod = new JComboBox<NetFilteringMethod>(NetFilteringMethod.values());
 		advancedConfigPanel.add(netFilteringMethod,
 				gridConstraint(1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
@@ -159,23 +243,11 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				 else{
 					 cpuDevice.setVisible(true);
 					 gpuDevice.setVisible(true);
-					 //cpuDevice.setEnabled(true);
-					 //gpuDevice.setEnabled(true);
 				 }
 				
 			}
 		});
-		// gridConstraint(0, 1, 1, 2, GridBagConstraints.CENTER,
-		// GridBagConstraints.HORIZONTAL));
-		// advancedConfigPanel.add(new java.awt.Label("Choose device:"),
-		// gridConstraint(0, 4, 1, 1, GridBagConstraints.NORTH,
-		// GridBagConstraints.HORIZONTAL));
-		// //gridConstraint(0, 2, 1, 1, GridBagConstraints.CENTER,
-		// GridBagConstraints.HORIZONTAL));
-		// device = new JComboBox<Device>(Device.values());
-		// advancedConfigPanel.add(device,
-		// gridConstraint(1, 4, 1, 1, GridBagConstraints.NORTH,
-		// GridBagConstraints.HORIZONTAL));
+
 		cpuDevice = new JRadioButton("CPU1");
 
 		advancedConfigPanel.add(cpuDevice,
@@ -248,8 +320,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		if (userSelection == JFileChooser.APPROVE_OPTION) {
 			File fileToSave = fileChooser.getSelectedFile();
 			url = fileToSave.getAbsolutePath();
-			// System.out.println("Save as file: " +
-			// fileToSave.getAbsolutePath());
 		}
 
 		return url;
@@ -269,7 +339,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 	@Override
 	public void handleEvent(ColumnCreatedEvent e) {
-		// logger.error("ColumnCreated Event Occured " + e.toString());
 		updateAttributePanel();
 	}
 
