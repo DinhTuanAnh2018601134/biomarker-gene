@@ -1,15 +1,8 @@
 package kcore.plugin.hc_parallel;
 
-import java.io.FileOutputStream;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.cytoscape.model.CyEdge;
-import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
@@ -18,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.aparapi.Kernel;
 import com.aparapi.Range;
-import com.aparapi.device.Device;
 
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.hc.DirectionType;
@@ -31,27 +23,34 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Stack;
 import java.util.Vector;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.swing.JOptionPane;
 
 public class hc_algorithm_parallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(hc_algorithm_parallel.class);
-	static {
-		System.setProperty("com.aparapi.executionMode", "JTP");
-		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	private static String device;
+	
+	public hc_algorithm_parallel(KcoreParameters params, String path, String device) {
+		this.params = params;
+		this.outputFile = path;
+		hc_algorithm_parallel.device = device;
 	}
+//	static {
+//		if(device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "CPU");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
+//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+//	}
 	// path to input/output file
 		private String inputFile;
 		private String outputFile;
@@ -84,21 +83,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 		private static Map<String, Set<String>> reachableList;
 
-		public Map<String, Double> sortedMap;
+		public Map<String, Double> sortedMap;	
+		private String timeStart;
+		private String timeEnd;
 
 		public hc_algorithm_parallel() {
 			init();
-		}
-
-		public hc_algorithm_parallel(KcoreParameters params, String path) {
-			this.params = params;
-			this.outputFile = path;
-		}
-
-		public void execute() throws Exception {
-			loadData();
-			compute();
-			writeTextFile();
 		}
 		
 		public DirectionType getType(List<String> type) {
@@ -261,7 +251,13 @@ public class hc_algorithm_parallel extends AbstractTask {
 	    }
 
 		// load data
+		@SuppressWarnings("deprecation")
 		public void loadData() {
+			if(device == "CPU") {
+				System.setProperty("com.aparapi.executionMode", "JTP");
+			}
+//			else
+//				rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 			for (Edge edge : edgeList) {
 				pushMapV(adjList, edge.getStartNode(), edge.getEndNode(), edge.getDirection());
 				vertexList.add(edge.getStartNode());
@@ -307,11 +303,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 		}
 
 		// write result to output.txt
-		public void writeTextFile() throws Exception {
+		public void writeTextFile(String start, String end) throws Exception {
 			Path path = Paths.get(outputFile);
 			List<String> lines = new ArrayList<>();
 			// sort map by value
 			sortedMap = MapComparator.sortByValue(hc);
+			lines.add("time start: " + start + " - " + "time end: " + end);
 			lines.add("Node\tHC");
 			for (Map.Entry<String, Double> entry : sortedMap.entrySet()) {
 				lines.add(String.format("%s\t%f", entry.getKey(), entry.getValue() + 1));
@@ -417,12 +414,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 			taskMonitor.setStatusMessage("Load data ....");
 			SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 		    Date now = new Date();
-		    String strDate = sdfDate.format(now);
-		    System.out.println("time start: " + strDate);
+		    timeStart = sdfDate.format(now);
+		    System.out.println("time start: " + timeStart);
 			loadData();
 		    Date now1 = new Date();
-		    String strDate1 = sdfDate.format(now1);
-		    System.out.println("time end: " + strDate1);
+		    timeEnd = sdfDate.format(now1);
+		    System.out.println("time end: " + timeEnd);
 		    
 			taskMonitor.setProgress(0.4);
 			taskMonitor.setStatusMessage("Computing R-core ....");
@@ -431,7 +428,7 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 			taskMonitor.setProgress(0.9);
 			taskMonitor.setStatusMessage("Write result....");
-			writeTextFile();
+			writeTextFile(timeStart, timeEnd);
 			// createColumn();
 
 			taskMonitor.setProgress(1.0);

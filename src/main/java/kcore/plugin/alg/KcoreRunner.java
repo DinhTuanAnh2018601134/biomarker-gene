@@ -20,10 +20,12 @@ public class KcoreRunner {
 
 	private KcoreParameters params;
 	private String path;
+	private String device;
 
-	public KcoreRunner(KcoreParameters params,String path) {
+	public KcoreRunner(KcoreParameters params,String path, String device) {
 		this.params = params;
 		this.path = path;
+		this.device = device;
 	}
 
 	public void runKcore() {
@@ -50,7 +52,7 @@ public class KcoreRunner {
 	}
 	public void runKcoreGPU() {
 		try {
-			KcoreParallel alg = new KcoreParallel(params,this.path);
+			KcoreParallel alg = new KcoreParallel(params,this.path,this.device);
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			alg.cancel();
@@ -90,7 +92,7 @@ public class KcoreRunner {
 	
 	public void runRcoreGPU() {
 		try {
-			RcoreParallel alg = new RcoreParallel(params,this.path);
+			RcoreParallel alg = new RcoreParallel(params,this.path, this.device);
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			alg.cancel();
@@ -129,7 +131,7 @@ public class KcoreRunner {
 	}
 	public void runHcParallel() {
 		try {
-			hc_algorithm_parallel alg = new hc_algorithm_parallel(params,this.path);
+			hc_algorithm_parallel alg = new hc_algorithm_parallel(params,this.path, this.device);
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			alg.cancel();
@@ -149,8 +151,6 @@ public class KcoreRunner {
 		
 	public void runBiomaker() {
 		try {
-			
-			
 			Biomaker alg = new Biomaker(params, this.path);
 			TaskFactory factory2 = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory2.createTaskIterator());

@@ -152,6 +152,12 @@
 			<artifactId>ooxml-schemas</artifactId>
 			<version>1.3</version>
 		</dependency>
+		<!-- https://mavenlibs.com/maven/dependency/org.bytedeco/opencl-platform -->
+		<!-- <dependency>
+		    <groupId>org.bytedeco</groupId>
+		    <artifactId>opencl-platform</artifactId>
+		    <version>3.0-1.5.7</version>
+		</dependency>-->
 	</dependencies>
 
 	<repositories>

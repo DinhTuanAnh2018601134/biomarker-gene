@@ -67,6 +67,9 @@ public class hc_algorithm extends AbstractTask {
 	public Map<Integer, String> mapDict = new HashMap<Integer, String>();
 	public Map<Integer, List<Integer>> groupDict = new HashMap<Integer, List<Integer>>();
 	// public double temp = 0.0d, connectivity = 0.0d, closeness = 0.0d;
+	
+	private String timeStart;
+	private String timeEnd;
 
 	public hc_algorithm(KcoreParameters params, String path) {
 		this.params = params;
@@ -228,13 +231,13 @@ public class hc_algorithm extends AbstractTask {
 	}
 
 	// write file
-	public void writeFile() throws Exception {
+	public void writeFile(String start, String end) throws Exception {
 
 		Path path = Paths.get(OUTPUT);
 		List<String> lines = new ArrayList<>();
 		// sort map by value
 		// Map<String, Integer> sortedMap = MapComparator.sortByValue(kCore);
-
+		lines.add("time start: " + start + " - " + "time end: " + end);
 		for (Map.Entry<String, Double> entry : hcEntropy.entrySet()) {
 			lines.add(String.format("%s\t%.6f", entry.getKey(), entry.getValue()));
 		}
@@ -537,16 +540,16 @@ public class hc_algorithm extends AbstractTask {
 		taskMonitor.setStatusMessage("Computing HC ....");
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
-	    String strDate = sdfDate.format(now);
-	    System.out.println("time start: " + strDate);
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		execute();
 	    Date now1 = new Date();
-	    String strDate1 = sdfDate.format(now1);
-	    System.out.println("time end: " + strDate1);
+	    timeEnd = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
-		writeFile();
+		writeFile(timeStart, timeEnd);
 		// createColumn();
 		taskMonitor.setProgress(1.0);
 		taskMonitor.setStatusMessage("Compute success!");

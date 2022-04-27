@@ -1,86 +1,90 @@
 package kcore.plugin.parallel;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Vector;
+
 import com.aparapi.Kernel;
-import com.aparapi.Range;
 
 public class KCoreKernel extends Kernel {
-//	private int k;
-	private int adjListV[];
-	private int kCore[];
-	private int degrees[];
-	private int temp[];
-	private int result[];
-	private Range range;
-
-	public KCoreKernel(Range range) {
-		this.range = range;
-		temp = new int[this.range.getGlobalSize(0)];
+	//k-core
+	private int l;
+	// number of vertex
+	private int i;
+	// map to store adjacency list
+	private Map<String, Vector<String>> adjList;
+	// map to store degree
+	private Map<String, Integer> degrees;
+	//array list to store adjbuff
+	private ArrayList<String> vertexBuff;
+	
+	public KCoreKernel() {
+		super();
 	}
 
 	@Override
 	public void run() {
 		int index = getGlobalId();
-		if (kCore[adjListV[index]] == 0) {
-			degrees[adjListV[index]] = degrees[adjListV[index]] - 1;
-			temp[index] = adjListV[index];
-		} else {
-			temp[index] = -1;
+		if(index < vertexBuff.size()) {
+			String vertex = vertexBuff.get(index);
+			Vector<String> adjListV = adjList.get(vertex);
+			for (String adjName : adjListV) {
+				int adjDeg = degrees.get(adjName);
+				if(adjDeg > l) {
+					adjDeg--;
+					degrees.replace(adjName, adjDeg);
+					if(adjDeg == l) {
+						vertexBuff.add(adjName);
+					}
+					if(adjDeg < l) {
+						degrees.replace(adjName, adjDeg++);
+					}
+				}
+			}
 		}
-//		if (degrees[adjListV[index]] > k) {
-//			degrees[adjListV[index]] = degrees[adjListV[index]] - 1;
-//			if(degrees[adjListV[index]] == k+1) {
-//				temp[index] = adjListV[index];
-//			}
-//			else {
-//				temp[index] = -1;
-//			}
-//			if(degrees[adjListV[index]] <= k) {
-//				degrees[adjListV[index]] = degrees[adjListV[index]] + 1;
-//			}
-//		}else {
-//			temp[index] = -1;
-//		}
 	}
 
-	public int[] getAdjListV() {
-		return adjListV;
+	public int getVisitedVertex() {
+		return vertexBuff.size();
+	}
+	
+	public int getI() {
+		return i;
 	}
 
-	public void setAdjListV(int[] adjListV) {
-		this.adjListV = adjListV;
+	public void setI(int i) {
+		this.i = i;
 	}
 
-	public int[] getkCore() {
-		return kCore;
+	public int getL() {
+		return l;
 	}
 
-	public void setkCore(int[] kCore) {
-		this.kCore = kCore;
+	public void setL(int l) {
+		this.l = l;
 	}
 
-	public int[] getDegrees() {
+	public Map<String, Vector<String>> getAdjList() {
+		return adjList;
+	}
+
+	public void setAdjList(Map<String, Vector<String>> adjList) {
+		this.adjList = adjList;
+	}
+
+	public Map<String, Integer> getDegrees() {
 		return degrees;
 	}
 
-	public void setDegrees(int[] degrees) {
+	public void setDegrees(Map<String, Integer> degrees) {
 		this.degrees = degrees;
 	}
 
-	public int[] getResult() {
-		int count = 0;
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i] != -1) {
-				count++;
-			}
-		}
-		result = new int[count];
-		count = 0;
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i] != -1) {
-				result[count] = temp[i];
-				count++;
-			}
-		}
-		return result;
+	public ArrayList<String> getVertexBuff() {
+		return vertexBuff;
+	}
+
+	public void setVertexBuff(ArrayList<String> vertexBuff) {
+		this.vertexBuff = vertexBuff;
 	}
 }

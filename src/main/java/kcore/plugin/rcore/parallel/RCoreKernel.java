@@ -1,158 +1,112 @@
 package kcore.plugin.rcore.parallel;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+
 import com.aparapi.Kernel;
-import com.aparapi.Range;
 
 public class RCoreKernel extends Kernel {
-
-	private int currentVertex;
-	private int[] rCore;
-	private int[] adjListV;
-	private int[] reachability;
-
-	private int[] reachableSource;
-	private int[][] reachableList;
-
-	private int inputCase;
-
-	private boolean temp[];
-	private Range range;
-
-	public RCoreKernel(int[] rCore, int[] adjListV, int[] reachability, int[] reachableSource, int[][] reachableList,
-			int inputCase) {
-		this.rCore = rCore;
-		this.adjListV = adjListV;
-		this.reachability = reachability;
-		this.reachableSource = reachableSource;
-		this.reachableList = reachableList;
-		this.inputCase = inputCase;
-
-		temp = new boolean[reachability.length];
-
-		this.currentVertex = -1;
-	}
-
-	public RCoreKernel(int currentVertex, int[] reachability, int[] reachableSource, int[][] reachableList,
-			int inputCase) {
-		this.currentVertex = currentVertex;
-		this.reachability = reachability;
-		this.reachableSource = reachableSource;
-		this.reachableList = reachableList;
-		this.inputCase = inputCase;
-
-		temp = new boolean[reachability.length];
-
-		this.rCore = new int[] { -1 };
-		this.adjListV = new int[] { -1 };
+	//R-core
+	private int l;
+	// number of vertex
+	private int i;
+	// map to store adjacency list
+	private Map<String, Vector<String>> adjList;
+	// map to store reachability
+	private Map<String, Integer> reachability;
+	//array list to store adjbuff
+	private ArrayList<String> vertexBuff;
+	private ArrayList<String> vertexBuff1;
+	private Set<String> vertexList;
+	
+	public RCoreKernel() {
+		super();
 	}
 
 	@Override
 	public void run() {
-		int id = getGlobalId();
-		if (inputCase == 1) {
-
-			if (rCore[adjListV[id]] == -1) {
-				reachability[adjListV[id]] = reachability[adjListV[id]] - 1;
-
-				for (int source = 0; source < reachableSource.length; source++) {
-					if (reachableSource[source] != -1 && containReachValue(reachableSource[source], adjListV[id])) {
-						reachability[reachableSource[source]] = reachability[reachableSource[source]] - 1;
+		int index = getGlobalId();
+		if(index < vertexBuff.size()) {
+			String vertex = vertexBuff.get(index);
+			Vector<String> adjListV = adjList.get(vertex);
+			for (String vert : adjListV) {
+				int adjRea = reachability.get(vert);
+				if(adjRea > l) {
+					adjRea--;
+					reachability.replace(vert, adjRea);
+					if(adjRea == l) {
+						vertexBuff.add(vert);
+//						vertexBuff1.add(vert);
+					}
+					if(adjRea < l) {
+						reachability.replace(vert, adjRea++);
 					}
 				}
-
-				temp[adjListV[id]] = true;
-			}
-
-		} else if (inputCase == 2) {
-			int source = reachableSource[id];
-			if (source != -1 && containReachValue(source, currentVertex)) {
-				reachability[source] = reachability[source] - 1;
-
-				temp[source] = true;
 			}
 		}
 	}
-
-	private boolean containReachValue(int row, int value) {
-		for (int c = 0; c < reachableList[row].length; c++) {
-			if (reachableList[row][c] == value) {
-				return true;
-			}
-		}
-		return false;
+	
+	public ArrayList<String> getVertexBuff1() {
+		return vertexBuff1;
 	}
 
-	public int[] getResult() {
-		int count = 0;
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i]) {
-				count++;
-			}
-		}
-		int[] ret = new int[count];
-		count = 0;
-		for (int i = 0; i < temp.length; i++) {
-			if (temp[i]) {
-				ret[count] = i;
-				count++;
-			}
-		}
-		return ret;
+	public void setVertexBuff1(ArrayList<String> vertexBuff1) {
+		this.vertexBuff1 = vertexBuff1;
 	}
 
-	public int getCurrentVertex() {
-		return currentVertex;
+	public Set<String> getVertexList() {
+		return vertexList;
 	}
 
-	public void setCurrentVertex(int currentVertex) {
-		this.currentVertex = currentVertex;
+	public void setVertexList(Set<String> vertexList) {
+		this.vertexList = vertexList;
 	}
 
-	public int[] getrCore() {
-		return rCore;
+	public int getVisitedVertex() {
+		return vertexBuff.size();
 	}
 
-	public void setrCore(int[] rCore) {
-		this.rCore = rCore;
+	public int getL() {
+		return l;
 	}
 
-	public int[] getAdjListV() {
-		return adjListV;
+	public void setL(int l) {
+		this.l = l;
 	}
 
-	public void setAdjListV(int[] adjListV) {
-		this.adjListV = adjListV;
+	public int getI() {
+		return i;
 	}
 
-	public int[] getReachability() {
+	public void setI(int i) {
+		this.i = i;
+	}
+
+	public Map<String, Vector<String>> getAdjList() {
+		return adjList;
+	}
+
+	public void setAdjList(Map<String, Vector<String>> adjList) {
+		this.adjList = adjList;
+	}
+
+	public Map<String, Integer> getReachability() {
 		return reachability;
 	}
 
-	public void setReachability(int[] reachability) {
+	public void setReachability(Map<String, Integer> reachability) {
 		this.reachability = reachability;
 	}
 
-	public int[] getReachableSource() {
-		return reachableSource;
+	public ArrayList<String> getVertexBuff() {
+		return vertexBuff;
 	}
 
-	public void setReachableSource(int[] reachableSource) {
-		this.reachableSource = reachableSource;
+	public void setVertexBuff(ArrayList<String> vertexBuff) {
+		this.vertexBuff = vertexBuff;
 	}
 
-	public int[][] getReachableList() {
-		return reachableList;
-	}
-
-	public void setReachableList(int[][] reachableList) {
-		this.reachableList = reachableList;
-	}
-
-	public int getInputCase() {
-		return inputCase;
-	}
-
-	public void setInputCase(int inputCase) {
-		this.inputCase = inputCase;
-	}
+	
 }

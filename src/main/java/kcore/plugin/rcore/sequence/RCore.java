@@ -70,6 +70,9 @@ public class RCore extends AbstractTask {
 	private static Map<String, Set<String>> reachableList;
 
 	public Map<String, Integer> sortedMap;
+	
+	private String timeStart;
+	private String timeEnd;
 
 	public RCore() {
 		init();
@@ -81,14 +84,6 @@ public class RCore extends AbstractTask {
 		// init();
 	}
 
-	public void execute() throws Exception {
-		// init();
-		// readFile();
-		loadData();
-		compute();
-		writeTextFile();
-	}
-	
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
 		for (String temp : type) {
@@ -244,12 +239,13 @@ public class RCore extends AbstractTask {
 	}
 
 	// write result to output.txt
-	public void writeTextFile() throws Exception {
+	public void writeTextFile(String start, String end) throws Exception {
 
 		Path path = Paths.get(outputFile);
 		List<String> lines = new ArrayList<>();
 		// sort map by value
 		sortedMap = MapComparator.sortByValue(rCore);
+		lines.add("time start: " + start + " - " + "time end: " + end);
 		lines.add("Node\tRCore");
 		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
 			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue() + 1));
@@ -298,40 +294,8 @@ public class RCore extends AbstractTask {
 		return count;
 	}
 
-//	public int countChildNodeSe(String node) {
-//		Stack<String> s = new Stack<>();
-//
-//		int count = 0;
-//
-//		s.push(node);
-//
-//		while (!s.isEmpty()) {
-//			String current = s.pop();
-//
-//			if (visited.contains(current)) {
-//				continue;
-//			}
-//
-//			visited.add(current);
-//
-//			if (adjList.get(current) != null) {
-//				for (String vertex : adjList.get(current)) {
-//					s.push(vertex);
-//					if (!visited.contains(vertex)) {
-//						count = count + 1;
-//						pushMapS(reachableList, node, vertex);
-//					}
-//				}
-//			}
-//		}
-//
-//		return count;
-//	}
-
 	// compute
 	public void compute() {
-		System.out.println("reachability: " + reachability);
-//		System.out.println("reachableList: " + reachableList);
 		int r = 0;
 		// BFS traverse
 		while (!vertexQueue.isEmpty()) {
@@ -374,48 +338,6 @@ public class RCore extends AbstractTask {
 		}
 		System.out.println("R-Core: " + r);
 	}
-
-//	public void writeXLSFile() throws Exception {
-//
-//		// sort map by value
-//		Map<String, Integer> sortedMap = MapComparator.sortByValue(rCore);
-//
-//		// name of excel file
-//		String excelFileName = outputFile + "/result.xls";
-//
-//		// name of sheet
-//		String sheetName = "Sheet1";
-//
-//		HSSFWorkbook wb = new HSSFWorkbook();
-//		HSSFSheet sheet = wb.createSheet(sheetName);
-//		HSSFRow row;
-//		HSSFCell cell;
-//
-//		// header
-//		row = sheet.createRow(0);
-//		cell = row.createCell(0);
-//		cell.setCellValue("Node");
-//		cell = row.createCell(1);
-//		cell.setCellValue("Rank");
-//
-//		int index = 1;
-//		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-//			row = sheet.createRow(index++);
-//
-//			cell = row.createCell(0);
-//			cell.setCellValue(String.format("%s", entry.getKey()));
-//
-//			cell = row.createCell(1);
-//			cell.setCellValue(String.format("%d", entry.getValue()));
-//		}
-//
-//		FileOutputStream fileOut = new FileOutputStream(excelFileName);
-//
-//		// write this workbook to an Outputstream.
-//		wb.write(fileOut);
-//		fileOut.flush();
-//		fileOut.close();
-//	}
 
 	public String getInputFile() {
 		return inputFile;
@@ -469,16 +391,16 @@ public class RCore extends AbstractTask {
 
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
-	    String strDate = sdfDate.format(now);
-	    System.out.println("time start: " + strDate);
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		compute();
 	    Date now1 = new Date();
-	    String strDate1 = sdfDate.format(now1);
-	    System.out.println("time end: " + strDate1);
+	    timeEnd = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
-		writeTextFile();
+		writeTextFile(timeStart, timeEnd);
 		// createColumn();
 
 		taskMonitor.setProgress(1.0);

@@ -8,7 +8,9 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,6 +75,9 @@ public class Biomaker extends AbstractTask {
 	private static Map<String, Set<String>> reachableList;
 
 	public Map<String, Integer> sortedMap;
+	
+	private String timeStart;
+	private String timeEnd;
 
 	// --------------------------------------HC-----------------------------------------
 	public void executeHC() {
@@ -782,11 +787,12 @@ public class Biomaker extends AbstractTask {
 	//
 	// }
 
-	public void writeFile() {
+	public void writeFile(String start, String end) {
 		// write file
 		Path path = Paths.get(OUTPUT);
 		ArrayList<String> lines = new ArrayList<>();
 
+		lines.add("time start: " + start + " - " + "time end: " + end);
 		lines.add("Node\tRCore\tHC");
 		int i = 0;
 		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
@@ -848,15 +854,22 @@ public class Biomaker extends AbstractTask {
 
 		taskMonitor.setProgress(0.3);
 		taskMonitor.setStatusMessage("Computing Rcore ....");
+		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
+	    Date now = new Date();
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		executeRcore();
 
 		taskMonitor.setProgress(0.6);
 		taskMonitor.setStatusMessage("Computing HC ....");
 		executeHC();
+	    Date now1 = new Date();
+	    timeEnd = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 
 		taskMonitor.setProgress(0.8);
 		taskMonitor.setStatusMessage("Write result....");
-		writeFile();
+		writeFile(timeStart, timeEnd);
 		
 		taskMonitor.setProgress(1.0);
 		taskMonitor.setStatusMessage("Compute success!");

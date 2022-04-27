@@ -1,7 +1,9 @@
 package kcore.plugin.parallel;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+//import com.aparapi.device.Device;
+//import com.aparapi.internal.kernel.KernelManager;
+//import com.aparapi.internal.kernel.KernelPreferences;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.nio.file.Files;
@@ -12,18 +14,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
-
-//import org.apache.poi.hssf.usermodel.HSSFCell;
-//import org.apache.poi.hssf.usermodel.HSSFRow;
-//import org.apache.poi.hssf.usermodel.HSSFSheet;
-//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import org.apache.commons.math3.stat.inference.TestUtils;
 import org.cytoscape.model.CyEdge;
@@ -47,82 +42,89 @@ import org.slf4j.LoggerFactory;
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.alg.param.NetFilteringMethod;
 import kcore.plugin.rcore.sequence.Edge;
+import kcore.plugin.sequence.Kcore;
 import kcore.plugin.service.ServicesUtil;
 
+import com.aparapi.Kernel;
 import com.aparapi.Range;
 
 public class KcoreParallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(KcoreParallel.class);
-	static {
-		System.setProperty("com.aparapi.executionMode", "GPU");
-		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	private static String device;
+	public KcoreParallel(KcoreParameters params, String path, String device) {
+		this.params = params;
+		this.OUTPUT = path;
+		KcoreParallel.device = device;
 	}
+//	@Deprecated
+//	   public static enum EXECUTION_MODE {
+//	      AUTO,
+//	      NONE,
+//	      GPU,
+//	      CPU,
+//	      JTP,//Java Thread Pool
+//	      SEQ,
+//	      ACC;
+//	}
+//	static {
+//		if(KcoreParallel.device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "JTP");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
+//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+//	}
+	private String OUTPUT; 
+	private CyNetwork net;
+	private CyTable cyTable;
+	private CyTable cyTableNode;
+	List<CyNode> listNode;
+	List<CyEdge> listEdge;
 
-	// path to input/output file
-	// private static final String INPUT = "wikivote.txt";
-	private String OUTPUT;// =
-							// "D:/Project/docx/cytoscape_data/kcore_parallel.txt";
-
+	private KcoreParameters params;
 	// list to store edges
 	private List<Edge> edgeList;
 	// map to store k-core
-	private int[] kCore;
+//	private Map<String, Integer> kCore;
 	// map to store adjacency list
-	private Map<Integer, ArrayList<Integer>> adjList;
+	private Map<String, Vector<String>> adjList;
 	// map to store degree
-	private int[] degrees;
+	private Map<String, Integer> degrees;
 	// vertex queue
-	private PriorityQueue<Vertex> vertexQueue;
+	private ArrayList<Vertex> vertexList;
+	private ArrayList<String> vertexBuff;
 
-	// sets vertex
-	private Set<String> setV;
-
-	// convert vertex string to intId
-	private Map<String, Integer> vStringToInt;
-
-	// convert vertex intId to string
-	private String[] vStringArray;
-
-	private int numberOfVertexs;
-	private int numberOfEdges;
-
-	private CyNetwork net;
-	private CyTable cyTable;
-	private List<CyEdge> listEdge;
-	private CyTable cyTableNode;
-	private List<CyNode> listNode;
-	private KcoreParameters params;
 	private boolean cancelled = false;
-
-	public KcoreParallel(KcoreParameters params, String path) {
-		this.params = params;
-		this.OUTPUT = path;
-	}
+	
+	private String timeStart;
+	private String timeEnd;
 
 	// initialize
+	@SuppressWarnings("unchecked")
 	public void init() {
 		edgeList = new ArrayList<Edge>();
-		// kCore = new HashMap<String, Integer>();
-		adjList = new HashMap<>();
-		// degrees = new HashMap<String, Integer>();
-		vertexQueue = new PriorityQueue<Vertex>();
+//		kCore = new HashMap<String, Integer>();
+		adjList = new HashMap<String, Vector<String>>();
+		degrees = new HashMap<String, Integer>();
+		vertexList = new ArrayList<Vertex>();
+		vertexBuff = new ArrayList<>();
 
-		setV = new HashSet<>();
-		vStringToInt = new HashMap<>();
+		// init cytoscape network
 
 		this.net = params.getCyNetwork();
 		cyTable = this.net.getDefaultEdgeTable();
-		listEdge = net.getEdgeList();
 		cyTableNode = this.net.getDefaultNodeTable();
+		listEdge = net.getEdgeList();
 		listNode = net.getNodeList();
 
 		// neu trong suid hien tai co nhieu hon 1 nut
 		for (int i = 0; i < listNode.size(); i++) {
 			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
 			if (subName.contains("container")) {
-
+				// continue;
 			} else {
 				List<String> subNameNode = new ArrayList<String>();
 				try {
@@ -130,6 +132,7 @@ public class KcoreParallel extends AbstractTask {
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
+
 				if(subNameNode != null) {
 					for (int j = 0; j < subNameNode.size(); j++) {
 						if (j == subNameNode.size() - 1) {
@@ -159,7 +162,6 @@ public class KcoreParallel extends AbstractTask {
 			} else {
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");
-
 				ArrayList<String> firstEdge = new ArrayList<>();
 				ArrayList<String> secondEdge = new ArrayList<>();
 				// set first array edge
@@ -168,7 +170,6 @@ public class KcoreParallel extends AbstractTask {
 				setAr(firstEdge, secondEdge, subName[subName.length - 1], 2);
 				// Add edge
 				swap(firstEdge, secondEdge);
-
 			}
 		}
 		logger.info("Init OK!");
@@ -220,148 +221,88 @@ public class KcoreParallel extends AbstractTask {
 	// load data
 	public void loadData() {
 		for (Edge edge : edgeList) {
-			setV.add(edge.getStartNode());
-			setV.add(edge.getEndNode());
-		}
-
-		numberOfEdges = edgeList.size();
-		encryptVertex();
-
-		for (Edge edge : edgeList) {
 			pushMap(adjList, edge.getStartNode(), edge.getEndNode());
 			pushMap(adjList, edge.getEndNode(), edge.getStartNode());
 
 		}
 
-		degrees = new int[numberOfVertexs];
-		for (Map.Entry<Integer, ArrayList<Integer>> entry : adjList.entrySet()) {
-			// key nay co bn ket noi
-			degrees[entry.getKey()] = entry.getValue().size();
-			vertexQueue.add(new Vertex(vStringArray[entry.getKey()], entry.getValue().size()));
+		for (Map.Entry<String, Vector<String>> entry : adjList.entrySet()) {
+			degrees.put(entry.getKey(), entry.getValue().size());
+			logger.info("list adj: " + entry.getKey() + " " + entry.getValue().size());
 		}
+
+		for (Map.Entry<String, Integer> entry : degrees.entrySet()) {
+			vertexList.add(new Vertex(entry.getKey(), entry.getValue()));
+		}
+
 	}
 
 	// write result to output.txt
-	public void writeFile() throws Exception {
+	public void writeFile(String start, String end) throws Exception {
+		// save result	
+			Path path = Paths.get(OUTPUT);
+			List<String> lines = new ArrayList<>();
+			// sort map by value
+			Map<String, Integer> sortedMap = MapComparator.sortByValue(degrees);
 
-		Path path = Paths.get(OUTPUT);
-		List<String> lines = new ArrayList<>();
+			lines.add("time start: " + start + " - " + "time end: " + end);
+			lines.add("Node\tKCore");
+			for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+				lines.add(String.format("%s\t%d", entry.getKey().toString(), entry.getValue()));
+			}
+			Files.write(path, lines);
 
-		Map<String, Integer> kCoreResult = new HashMap<>();
-
-		for (int i = 0; i < kCore.length; i++) {
-			kCoreResult.put(vStringArray[i], kCore[i]);
-		}
-
-		// sort map by value
-		Map<String, Integer> sortedMap = MapComparator.sortByValue(kCoreResult);
-
-		lines.add("Node\tKcore");
-		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue()));
-		}
-
-		Files.write(path, lines);
-
+			Files.write(path, lines);
+	
 	}
 
 	// push value to map
-	public void pushMap(Map<Integer, ArrayList<Integer>> adjList, String start, String end) {
-		if (!adjList.containsKey(vStringToInt.get(start))) {
-			adjList.put(Integer.valueOf(vStringToInt.get(start)), new ArrayList<Integer>());
+	public void pushMap(Map<String, Vector<String>> adjList, String cyNode, String cyNode2) {
+		if (!adjList.containsKey(cyNode)) {
+			adjList.put(cyNode, new Vector<>());
 		}
-		adjList.get(vStringToInt.get(start)).add(vStringToInt.get(end));
+		adjList.get(cyNode).add(cyNode2);
 	}
 
-	public void encryptVertex() {
-		int id = 0;
-		int length = setV.size();
-		numberOfVertexs = length;
-		kCore = new int[length];
-		vStringArray = new String[length];
-		for (String s : setV) {
-			vStringToInt.put(s, id);
-			vStringArray[id] = s;
-			id++;
-		}
-		setV.clear();
-	}
-
-	// compute
+	@SuppressWarnings("deprecation")
 	public void compute() {
-		int k = 0;
-		// BFS traverse
-		while (vertexQueue.size() != 0) {
-			Vertex current = vertexQueue.poll();
-			String currentVertex = current.getVertex();
-			if (degrees[vStringToInt.get(currentVertex)] < current.getDegree()) {
-				continue;
-			}
-
-			k = Math.max(k, degrees[vStringToInt.get(currentVertex)]);
-
-			kCore[vStringToInt.get(currentVertex)] = k;
-
-			int adjListV[] = convertIntegers(adjList.get(vStringToInt.get(currentVertex)));
-			Range range = Range.create(adjListV.length);
-			KCoreKernel kCoreKernel = new KCoreKernel(range);
-			kCoreKernel.setAdjListV(adjListV);
-			kCoreKernel.setkCore(kCore);
-			kCoreKernel.setDegrees(degrees);
-
-			kCoreKernel.execute(range);
-
-			degrees = kCoreKernel.getDegrees();
-			int result[] = kCoreKernel.getResult();
-			kCoreKernel.dispose();
-
-			for (int x : result) {
-				vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
-			}
+		if(device == "CPU") {
+			System.setProperty("com.aparapi.executionMode", "JTP");
 		}
-//		while (vertexQueue.size() != 0) {
-//			Vertex current = vertexQueue.peek();
-//			String currentVertex = current.getVertex();
-//			if (degrees[vStringToInt.get(currentVertex)] != k) {
-//				continue;
-//			}
-//			vertexQueue.poll();
-//
-////			k = Math.max(k, degrees[vStringToInt.get(currentVertex)]);
-////
-////			kCore[vStringToInt.get(currentVertex)] = k;
-//
-//			int adjListV[] = convertIntegers(adjList.get(vStringToInt.get(currentVertex)));
-//			Range range = Range.create(adjListV.length);
-//			KCoreKernel kCoreKernel = new KCoreKernel(range, k);
-//			k++;
-//			kCoreKernel.setAdjListV(adjListV);
-////			kCoreKernel.setkCore(kCore);
-//			kCoreKernel.setDegrees(degrees);
-//
-//			kCoreKernel.execute(range);
-//
-//			degrees = kCoreKernel.getDegrees();
-//			int result[] = kCoreKernel.getResult();
-//			kCoreKernel.dispose();
-//
-//			for (int x : result) {
-//				vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
-//			}
-//
-//			// Arrays.stream(result).forEach(x -> {
-//			// vertexQueue.add(new Vertex(vStringArray[x], degrees[x]));
-//			// });
-//		}
-		System.out.println("K-Core: " + k);
-	}
-
-	public int[] convertIntegers(List<Integer> integers) {
-		int[] ret = new int[integers.size()];
-		for (int i = 0; i < ret.length; i++) {
-			ret[i] = integers.get(i).intValue();
+			
+//		else
+//			kc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
+		int i = 0;
+		int l = 0;
+		while (i < vertexList.size()) {
+			for (Vertex vert : vertexList) {
+				String vertName = vert.getVertex();
+				if(degrees.get(vertName) == l) {
+					vertexBuff.add(vert.getVertex());
+				}
+			}
+			if(vertexBuff.size() > 0) {
+				Range range = Range.create(vertexList.size());
+				KCoreKernel kc = new KCoreKernel();
+				kc.setL(l);
+				kc.setAdjList(adjList);
+				kc.setDegrees(degrees);
+				kc.setVertexBuff(vertexBuff);
+				
+				kc.execute(range);
+				degrees = kc.getDegrees();
+				i += kc.getVisitedVertex();
+				kc.dispose();
+				vertexBuff.clear();
+			}
+			l++;
 		}
-		return ret;
+//		KernelPreferences preferences = KernelManager.instance().getDefaultPreferences();
+//	      System.out.println("-- Devices in preferred order --");
+//	      for (Device device : preferences.getPreferredDevices(null)) {
+//	          System.out.println("----------");
+//	          System.out.println(device);
+//	      }
 	}
 
 	@Override
@@ -380,20 +321,20 @@ public class KcoreParallel extends AbstractTask {
 		loadData();
 
 		taskMonitor.setProgress(0.4);
-		taskMonitor.setStatusMessage("Computing K-core GPU ....");
-		
+		taskMonitor.setStatusMessage("Computing K-core ....");
+
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
-	    String strDate = sdfDate.format(now);
-	    System.out.println("time start: " + strDate);
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		compute();
 	    Date now1 = new Date();
-	    String strDate1 = sdfDate.format(now1);
-	    System.out.println("time end: " + strDate1);
+	    timeEnd = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
-		writeFile();
+		writeFile(timeStart, timeEnd);
 
 		taskMonitor.setProgress(1.0);
 		taskMonitor.setStatusMessage("Compute success!");
@@ -404,9 +345,6 @@ public class KcoreParallel extends AbstractTask {
 	public void cancel() {
 		super.cancel();
 		cancelled = true;
-//		if (cancelled == true) {
-//			JOptionPane.showMessageDialog(null, "Compute K-core GPU Success, open text file to see the result!",
-//					"Infor", JOptionPane.INFORMATION_MESSAGE);
-//		}
+
 	}
 }

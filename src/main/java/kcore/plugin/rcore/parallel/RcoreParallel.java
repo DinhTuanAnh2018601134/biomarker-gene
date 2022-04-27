@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
@@ -27,79 +28,72 @@ import org.cytoscape.work.TaskMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.aparapi.Kernel;
 import com.aparapi.Range;
 
 import kcore.plugin.alg.param.KcoreParameters;
-import kcore.plugin.hc.DirectionType;
-import kcore.plugin.rcore.sequence.Edge;
 
 public class RcoreParallel extends AbstractTask {
-	// private static final Logger logger =
-	// LoggerFactory.getLogger(RcoreParallel.class);
-
-	static {
-		System.setProperty("com.aparapi.executionMode", "GPU");
-		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	private static final Logger logger = LoggerFactory.getLogger(RcoreParallel.class);
+	private static String device;
+	 
+	public RcoreParallel(KcoreParameters params, String path, String device) {
+		this.params = params;
+		this.outputFile = path;
+		RcoreParallel.device = device;
 	}
+//	static {
+//		if(device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "JTP");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
+//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+//	}
 
-	// path to input/output file
-	// private static final String INPUT = "FigS1.txt";
-	private String OUTPUT;// = "output.txt";
-
-	// list to store edges
-	private List<Edge> edgeList;
-	// map to store r-core
-	private int[] rCore;
-	// map to store adjacency list
-	private Map<Integer, ArrayList<Integer>> adjList;
-	// map to store reach level
-	private int[] reachLevel;
-	// vertex queue
-	private PriorityQueue<Vertex> vertexQueue;
-
-	//
-	private int[] reachableSource;
-	private int[][] reachableList;
-	//
-
-	// sets vertex
-	private Set<String> setV;
-
-	// convert vertex string to intId
-	private Map<String, Integer> vStringToInt;
-
-	// convert vertex intId to string
-	private String[] vStringArray;
-
-	private int numberOfVertexs;
-	private int numberOfEdges;
-
-	// temp
-	private Set<Integer> visited;
-	private int reachListIndex = 0;
-	private int[] reachListColumnIndex;
-
+	private String inputFile;
+	private String outputFile;
 	private CyNetwork net;
 	private CyTable cyTable;
 	private List<CyEdge> listEdge;
 	private CyTable cyTableNode;
 	private List<CyNode> listNode;
-	private KcoreParameters params;
+	public KcoreParameters params;
 	private boolean cancelled = false;
 
-	public RcoreParallel(KcoreParameters params, String path) {
-		this.params = params;
-		this.OUTPUT = path;
-	}
+	// list to store edges
+	private List<Edge> edgeList;
+	// map to store r-core
+	private Map<String, Integer> rCore;
+	// map to store reachability adjacency list
+	private Map<String, Vector<String>> ReaAdjList;
+	// map to store adjacency list
+	private Map<String, Vector<String>> adjList;
+	// map to store degree
+	private Map<String, Integer> reachability;
+	// vertex queue
+	private ArrayList<Vertex> vertList;
+	private ArrayList<String> vertexBuff;
+
+	private Set<String> vertexList;
+	private Set<String> visited;
+
+	private Map<String, Vector<String>> reachableList;
+
+	public Map<String, Integer> sortedMap;
+	
+	private String timeStart;
+	private String timeEnd;
 	
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
 		for (String temp : type) {
 			if (temp.contains("activation") || temp.contains("expression") || temp.contains("inhibition")
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
-					|| temp.contains("missing_interaction") || temp.contains("phosphorylation")) {
+					|| temp.contains("missing_interaction") || temp.contains("phosphorylation") || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
 			} else if (temp.contains("dissociation")) {
 				direction = DirectionType.UNDIRECTED;
@@ -108,70 +102,27 @@ public class RcoreParallel extends AbstractTask {
 
 		return direction;
 	}
-
+	
 	// initialize
-	private void init() {
+	public void init() {
 		edgeList = new ArrayList<>();
+		rCore = new HashMap<>();
+		ReaAdjList = new HashMap<>();
 		adjList = new HashMap<>();
-		vertexQueue = new PriorityQueue<>();
-		setV = new HashSet<>();
+		reachability = new HashMap<>();
+		vertList = new ArrayList<>();
+		vertexBuff = new ArrayList<>();
+		vertexList = new HashSet<>();
 		visited = new HashSet<>();
-		vStringToInt = new HashMap<>();
+		reachableList = new HashMap<>();
 
-		net = params.getCyNetwork();
-		cyTable = net.getDefaultEdgeTable();
+		this.net = params.getCyNetwork();
+		cyTable = this.net.getDefaultEdgeTable();
 		listEdge = net.getEdgeList();
 		cyTableNode = this.net.getDefaultNodeTable();
 		listNode = net.getNodeList();
 
 		// neu trong suid hien tai co nhieu hon 1 nut
-//		for (int i = 0; i < listNode.size(); i++) {
-//			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
-//			if (subName.contains("container")) {
-//
-//			} else {
-//				List<String> subNameNode = new ArrayList<String>();
-//				try {
-//					subNameNode = cyTableNode.getRow(listNode.get(i).getSUID()).get("KEGG_ID", List.class);
-//				} catch (Exception e) {
-//					JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
-//				}
-//
-//				for (int j = 0; j < subNameNode.size(); j++) {
-//					if (j == subNameNode.size() - 1) {
-//
-//					} else {
-//						for (int k = j + 1; k < subNameNode.size(); k++) {
-//							Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
-//							edgeList.add(edge);
-//						}
-//					}
-//				}
-//			}
-//
-//		}
-//
-//		for (int i = 0; i < listEdge.size(); i++) {
-//			// get first edge of edge table
-//			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
-//			if (type.contains("compound")) {
-//
-//			} else {
-//				DirectionType direction = getType(type);
-//				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
-//				String[] subName = name.split(" ");
-//
-//				ArrayList<String> firstEdge = new ArrayList<>();
-//				ArrayList<String> secondEdge = new ArrayList<>();
-//				// set first array edge
-//				setAr(firstEdge, secondEdge, subName[0], 1);
-//				// set second array edge
-//				setAr(firstEdge, secondEdge, subName[subName.length - 1], 2);
-//				// Add edge
-//				swap(firstEdge, secondEdge, direction);
-//
-//			}
-//		}
 		for (int i = 0; i < listNode.size(); i++) {
 			String subName = cyTableNode.getRow(listNode.get(i).getSUID()).get("name", String.class).trim();
 			if (subName.contains("container")) {
@@ -189,6 +140,7 @@ public class RcoreParallel extends AbstractTask {
 
 						} else {
 							for (int k = j + 1; k < subNameNode.size(); k++) {
+//								int weight = 
 								Edge edge = new Edge(subNameNode.get(j), subNameNode.get(k), 0, 1);
 								edgeList.add(edge);
 							}
@@ -226,6 +178,8 @@ public class RcoreParallel extends AbstractTask {
 				swap(firstEdge, secondEdge, direction);
 			}
 		}
+		
+		logger.info("Init OK!");// alert when complete!
 	}
 
 	// set Source array node of edge
@@ -271,211 +225,135 @@ public class RcoreParallel extends AbstractTask {
 	}
 
 	// load data
-	private void loadData() {
+	public void loadData() {
 		for (Edge edge : edgeList) {
-			setV.add(edge.getStartNode());
-			setV.add(edge.getEndNode());
+			pushMapV(ReaAdjList, edge.getStartNode(), edge.getEndNode(), edge.getDirection());
+			vertexList.add(edge.getStartNode());
+			vertexList.add(edge.getEndNode());
 		}
+//		for (Edge edge : edgeList) {
+//			pushMap(adjList, edge.getStartNode(), edge.getEndNode());
+//			pushMap(adjList, edge.getEndNode(), edge.getStartNode());
+//
+//		}
 
-		numberOfEdges = edgeList.size();
-		numberOfVertexs = setV.size();
-
-		rCore = new int[numberOfVertexs];
-		Arrays.fill(rCore, -1);
-
-		reachListColumnIndex = new int[numberOfVertexs];
-
-		reachLevel = new int[numberOfVertexs];
-
-		reachableSource = new int[numberOfVertexs];
-		Arrays.fill(reachableSource, -1);
-		reachableList = new int[numberOfVertexs][numberOfVertexs];
-
-		encryptVertex();
-
-		for (Edge edge : edgeList) {
-			pushMapV(adjList, edge.getStartNode(), edge.getEndNode(), edge.getDirection());
-		}
-
-		for (String vertex : setV) {
+		for (String vertex : vertexList) {
 			visited.clear();
-			int n = countChildNode(vStringToInt.get(vertex), vStringToInt.get(vertex));
-			reachLevel[vStringToInt.get(vertex)] = n;
+			int n = countChildNode(vertex, vertex);
+			reachability.put(vertex, n);
+		}
 
-			vertexQueue.add(new Vertex(vertex, n));
+		for (Map.Entry<String, Integer> entry : reachability.entrySet()) {
+			// System.out.println(entry.getKey()+" "+entry.getValue());
+			vertList.add(new Vertex(entry.getKey(), entry.getValue()));
+		}
+		for (String vertex : vertexList) {
+			adjList.put(vertex, new Vector<>());
+			for (String vert : vertexList) {
+				if(reachableList.get(vert) != null && reachableList.get(vert).contains(vertex)) {
+					adjList.get(vertex).add(vert);
+				}
+			}
 		}
 	}
 
 	// write result to output.txt
-	public void writeTextFile() throws Exception {
+	public void writeTextFile(String start, String end) throws Exception {
 
-		Path path = Paths.get(OUTPUT);
+		Path path = Paths.get(outputFile);
 		List<String> lines = new ArrayList<>();
-
-		Map<String, Integer> rCoreResult = new HashMap<>();
-		for (int i = 0; i < rCore.length; i++) {
-			rCoreResult.put(vStringArray[i], rCore[i] + 1);
-		}
-
 		// sort map by value
-		Map<String, Integer> sortedMap = MapComparator.sortByValue(rCoreResult);
+		sortedMap = MapComparator.sortByValue(reachability);
+		lines.add("time start: " + start + " - " + "time end: " + end);
 		lines.add("Node\tRCore");
 		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue()));
+			lines.add(String.format("%s\t%d", entry.getKey(), entry.getValue() + 1));
 		}
 
 		Files.write(path, lines);
 	}
+	
+//	public void pushMap(Map<String, Vector<String>> adjList, String cyNode, String cyNode2) {
+//		if (!adjList.containsKey(cyNode)) {
+//			adjList.put(cyNode, new Vector<>());
+//		}
+//		adjList.get(cyNode).add(cyNode2);
+//	}
 
 	// push value to map
-	private void pushMapV(Map<Integer, ArrayList<Integer>> adjList, String start, String end, int weight) {
-		if (!adjList.containsKey(vStringToInt.get(start))) {
-			adjList.put(vStringToInt.get(start), new ArrayList<>());
+	public void pushMapV(Map<String, Vector<String>> adjList, String start, String end, int weight) {
+		if (!adjList.containsKey(start)) {
+			adjList.put(start, new Vector<>());
 		}
-		adjList.get(vStringToInt.get(start)).add(vStringToInt.get(end));
+		adjList.get(start).add(end);
 		if (weight == 0) {
-			if (!adjList.containsKey(vStringToInt.get(end))) {
-				adjList.put(vStringToInt.get(end), new ArrayList<>());
+			if (!adjList.containsKey(end)) {
+				adjList.put(end, new Vector<>());
 			}
-			adjList.get(vStringToInt.get(end)).add(vStringToInt.get(start));
+			adjList.get(end).add(start);
 		}
 	}
 
-	private void addReachableVertex(int[] reachableSource, int[][] reachableList, int start, int end) {
-		int containIndex = isContainSource(reachableSource, start);
-		if (containIndex == -1) {
-			reachableSource[reachListIndex] = start;
-
-			reachableList[reachableSource[reachListIndex]][reachListColumnIndex[reachListIndex]] = end;
-			reachListColumnIndex[reachListIndex]++;
-			reachListIndex++;
-		} else {
-			reachableList[reachableSource[containIndex]][reachListColumnIndex[containIndex]] = end;
-			reachListColumnIndex[containIndex]++;
+	public void pushMapS(Map<String, Vector<String>> adjList, String start, String end) {
+		if (!adjList.containsKey(start)) {
+			adjList.put(start, new Vector<>());
 		}
+		adjList.get(start).add(end);
 	}
 
-	private int isContainSource(int[] reachableSource, int start) {
-		for (int ro = 0; ro < reachableSource.length; ro++) {
-			if (reachableSource[ro] == start) {
-				return ro;
-			}
-		}
-		return -1;
-	}
-
-	private boolean containReachValue(int row, int value) {
-		for (int c = 0; c < reachableList[row].length; c++) {
-			if (reachableList[row][c] == value) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private int countChildNode(int node, int source) {
+	public int countChildNode(String node, String source) {
 		int count = 0;
 		visited.add(node);
-		if (adjList.get(node) != null) {
-			for (Integer vertex : adjList.get(node)) {
+		if (ReaAdjList.get(node) != null) {
+			for (String vertex : ReaAdjList.get(node)) {
 				if (!visited.contains(vertex)) {
-					if (adjList.get(vertex) != null && adjList.get(vertex).size() > 0) {
+					if (ReaAdjList.get(vertex) != null && ReaAdjList.get(vertex).size() > 0) {
 						count = count + countChildNode(vertex, source);
 						// System.out.print(count+" ");
-						// count number of child node of vertex that can
-						// controll
 					}
 					count = count + 1;
 					visited.add(vertex);
-					addReachableVertex(reachableSource, reachableList, source, vertex);
+					pushMapS(reachableList, source, vertex);
 				}
 			}
 		}
 		return count;
 	}
-
 	// compute
+	@SuppressWarnings("deprecation")
 	public void compute() {
-		int r = 0;
-		// BFS traverse
-		while (!vertexQueue.isEmpty()) {
-			Vertex current = vertexQueue.poll();
-			String currentVertex = current.getVertex();
-			if (reachLevel[vStringToInt.get(currentVertex)] < current.getDegree()) {
-				continue;
-			}
-
-			r = Math.max(r, reachLevel[vStringToInt.get(currentVertex)]);
-
-			rCore[vStringToInt.get(currentVertex)] = r;
-			// System.out.println(currentVertex + ": " + r);
-
-			// GPU
-			final Range range;
-			final RCoreKernel rCoreKernel;
-			int[] result;
-			if (adjList.get(vStringToInt.get(currentVertex)) != null
-					&& reachLevel[vStringToInt.get(currentVertex)] > 0) {
-
-				int adjListV[] = convertIntegers(adjList.get(vStringToInt.get(currentVertex)));
-				range = Range.create(adjListV.length);
-				rCoreKernel = new RCoreKernel(rCore, adjListV, reachLevel, reachableSource, reachableList, 1);
-
-				rCoreKernel.execute(range);
-				reachLevel = rCoreKernel.getReachability();
-
-				result = rCoreKernel.getResult();
-
-				rCoreKernel.dispose();
-
-				for (int x : result) {
-					vertexQueue.add(new Vertex(vStringArray[x], reachLevel[x]));
-				}
-
-				// Arrays.stream(result).forEach(x -> {
-				// vertexQueue.add(new Vertex(vStringArray[x], reachLevel[x]));
-				// });
-
-			} else if (reachLevel[vStringToInt.get(currentVertex)] == 0) {
-
-				range = Range.create(reachableSource.length);
-				rCoreKernel = new RCoreKernel(vStringToInt.get(currentVertex), reachLevel, reachableSource,
-						reachableList, 2);
-
-				rCoreKernel.execute(range);
-				reachLevel = rCoreKernel.getReachability();
-
-				result = rCoreKernel.getResult();
-
-				rCoreKernel.dispose();
-
-				for (int x : result) {
-					vertexQueue.add(new Vertex(vStringArray[x], reachLevel[x]));
+		if(device == "CPU") {
+			System.setProperty("com.aparapi.executionMode", "JTP");
+		}
+//		else
+//			rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
+		int i = 0;
+		int l = 0;
+		while (i < vertexList.size()) {
+			for (Vertex vert : vertList) {
+				String vertName = vert.getVertex();
+				if(reachability.get(vertName) == l) {
+					vertexBuff.add(vertName);
 				}
 			}
-
+			if(vertexBuff.size() > 0) {
+				Range range = Range.create(vertexList.size());
+				RCoreKernel rc = new RCoreKernel();
+				rc.setL(l);
+				rc.setAdjList(adjList);
+				rc.setReachability(reachability);
+				rc.setVertexBuff(vertexBuff);
+				rc.setVertexList(vertexList);
+				
+				rc.execute(range);
+				reachability = rc.getReachability();
+				i += rc.getVisitedVertex();
+				rc.dispose();
+				vertexBuff.clear();
+			}
+			l++;
 		}
-
-		System.out.println("R-Core: " + r);
-	}
-
-	private int[] convertIntegers(List<Integer> integers) {
-		int[] ret = new int[integers.size()];
-		for (int i = 0; i < ret.length; i++) {
-			ret[i] = integers.get(i).intValue();
-		}
-		return ret;
-	}
-
-	private void encryptVertex() {
-		int id = 0;
-		int length = setV.size();
-		vStringArray = new String[length];
-		for (String s : setV) {
-			vStringToInt.put(s, id);
-			vStringArray[id] = s;
-			id++;
-		}
+//		System.out.println("reachability: " + reachability);
 	}
 
 	@Override
@@ -498,21 +376,16 @@ public class RcoreParallel extends AbstractTask {
 		
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
-	    String strDate = sdfDate.format(now);
-	    System.out.println("time start: " + strDate);
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		compute();
 	    Date now1 = new Date();
-	    String strDate1 = sdfDate.format(now1);
-	    System.out.println("time end: " + strDate1);
+	    timeEnd = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 		
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
-		writeTextFile();
-
-//		taskMonitor.setProgress(0.9);
-		// JOptionPane.showMessageDialog(null,
-		// "Compute R-core GPU Success, open text file to see the result!",
-		// "Infor", JOptionPane.INFORMATION_MESSAGE);
+		writeTextFile(timeStart, timeEnd);
 
 		taskMonitor.setProgress(1.0);
 		taskMonitor.setStatusMessage("Compute success!");

@@ -78,7 +78,10 @@ public class Kcore extends AbstractTask {
 	// vertex queue
 	private PriorityQueue<Vertex> vertexQueue;
 
-	private boolean cancelled = false;
+	private boolean cancelled = false;	
+	
+	private String timeStart;
+	private String timeEnd;
 
 	public Kcore(KcoreParameters params, String path) {
 		this.params = params;
@@ -220,13 +223,14 @@ public class Kcore extends AbstractTask {
 	}
 
 	// write result to output.txt
-	public void writeFile() throws Exception {
+	public void writeFile(String start, String end) throws Exception {
 		// save result	
 			Path path = Paths.get(OUTPUT);
 			List<String> lines = new ArrayList<>();
 			// sort map by value
 			Map<String, Integer> sortedMap = MapComparator.sortByValue(kCore);
 
+			lines.add("time start: " + start + " - " + "time end: " + end);
 			lines.add("Node\tKCore");
 			for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
 				lines.add(String.format("%s\t%d", entry.getKey().toString(), entry.getValue()));
@@ -292,7 +296,6 @@ public class Kcore extends AbstractTask {
 	}
 
 	public void compute() {
-//		TaskMonitor taskMonitor, double progressStart, double progressEnd
 		int k = 0;
 
 		while (vertexQueue.size() != 0) {
@@ -353,17 +356,17 @@ public class Kcore extends AbstractTask {
 
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
-	    String strDate = sdfDate.format(now);
-	    System.out.println("time start: " + strDate);
+	    timeStart = sdfDate.format(now);
+	    System.out.println("time start: " + timeStart);
 		compute();
 	    Date now1 = new Date();
-	    String strDate1 = sdfDate.format(now1);
-	    System.out.println("time end: " + strDate1);
+	    timeEnd  = sdfDate.format(now1);
+	    System.out.println("time end: " + timeEnd);
 //		taskMonitor, 0.4, 0.8
 
 		taskMonitor.setProgress(0.9);
 		taskMonitor.setStatusMessage("Write result....");
-		writeFile();
+		writeFile(timeStart, timeEnd);
 
 		// createColumn();
 		taskMonitor.setProgress(1.0);
