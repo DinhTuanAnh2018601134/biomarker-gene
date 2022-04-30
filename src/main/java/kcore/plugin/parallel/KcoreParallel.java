@@ -264,7 +264,7 @@ public class KcoreParallel extends AbstractTask {
 		adjList.get(cyNode).add(cyNode2);
 	}
 
-	@SuppressWarnings("deprecation")
+//	@SuppressWarnings("deprecation")
 	public void compute() {
 		if(device == "CPU") {
 			System.setProperty("com.aparapi.executionMode", "JTP");
@@ -297,6 +297,10 @@ public class KcoreParallel extends AbstractTask {
 			}
 			l++;
 		}
+//		for (Vertex vert : vertexList) {
+//			System.out.print(vert.getVertex() + " ");
+//		}
+		
 //		KernelPreferences preferences = KernelManager.instance().getDefaultPreferences();
 //	      System.out.println("-- Devices in preferred order --");
 //	      for (Device device : preferences.getPreferredDevices(null)) {

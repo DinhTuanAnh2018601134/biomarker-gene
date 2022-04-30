@@ -794,49 +794,20 @@ public class Biomaker extends AbstractTask {
 
 		lines.add("time start: " + start + " - " + "time end: " + end);
 		lines.add("Node\tRCore\tHC");
-		int i = 0;
-		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-			if (i >= 10)
-				break;
-			
-//			String label = "";
-//			//get label
-//			for (int k = 0; k < listNode.size(); k++) {
-//				String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
-//				if (subName.contains("container")) {
-//
-//				} else {
-//					List<String> subNameNode = new ArrayList<String>();
-//					try {
-//						subNameNode = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_ID", List.class);
-//						if(subNameNode.contains(entry.getKey())){
-//							
-//							List<String> listLabel = cyTableNode.getRow(listNode.get(k).getSUID()).get("KEGG_NODE_LABEL_LIST", List.class);
-//							for(int o = 0; o< listLabel.size(); o++){
-//								if(o == listLabel.size() - 1){
-//									label +=listLabel.get(o).toString()+".";
-//								}else{
-//									label += listLabel.get(o).toString()+", ";
-//								}
-//								
-//							}
-//						}
-//						
-//					} catch (Exception e) {
-//						JOptionPane.showMessageDialog(null, "Lỗi convert!", "Error", JOptionPane.ERROR_MESSAGE);
-//					}
-//				}
-//			}		
-			
-			for (Map.Entry<String, Double> entry1 : hcEntropy.entrySet()) {
-				if (entry1.getKey().equals(entry.getKey())) {
-					
-//					lines.add(String.format("%s\t%d\t%9.8f\t%s", entry.getKey(), entry.getValue() + 1, entry1.getValue(),label));		
-					lines.add(String.format("%s\t%d\t%9.8f", entry.getKey(), entry.getValue() + 1, entry1.getValue()));	
-				}
-			}
-			i++;
+		for (String vertex : vertexList) {
+			lines.add(String.format("%s\t%d\t%f", vertex, rCore.get(vertex) + 1, hcEntropy.get(vertex)));
 		}
+//		int i = 0;
+//		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+//			if (i >= 10)
+//				break;		
+//			for (Map.Entry<String, Double> entry1 : hcEntropy.entrySet()) {
+//				if (entry1.getKey().equals(entry.getKey())) {	
+//					lines.add(String.format("%s\t%d\t%9.8f", entry.getKey(), entry.getValue() + 1, entry1.getValue()));	
+//				}
+//			}
+//			i++;
+//		}
 		try {
 			Files.write(path, lines);
 		} catch (IOException e) {

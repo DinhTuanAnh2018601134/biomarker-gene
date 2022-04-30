@@ -400,16 +400,33 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				alg.runHcParallel();
 			}
 			//BiomarkerGene sequence
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO) {
+			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
 					KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 							(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 					KcoreRunner alg = new KcoreRunner(params, path, "");
 					alg.runBiomaker();
-			} else {
+			}
+			//BiomarkerGene CPU
+			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
+				alg.runBiomakerParallel();
+			}
+			//BiomarkerGene GPU
+			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
+				alg.runBiomakerParallel();
+			}
+			 else {
 				JOptionPane.showMessageDialog(null, "Chọn một thiết bị thực thi.");
 				return;
 			}
-
 		}
 
 	}

@@ -31,13 +31,14 @@ public class KCoreKernel extends Kernel {
 			for (String adjName : adjListV) {
 				int adjDeg = degrees.get(adjName);
 				if(adjDeg > l) {
-					adjDeg--;
+					adjDeg = adjDeg - 1;
 					degrees.replace(adjName, adjDeg);
 					if(adjDeg == l) {
 						vertexBuff.add(adjName);
 					}
 					if(adjDeg < l) {
-						degrees.replace(adjName, adjDeg++);
+						adjDeg = adjDeg + 1;
+						degrees.replace(adjName, adjDeg);
 					}
 				}
 			}

@@ -247,6 +247,7 @@ public class RcoreParallel extends AbstractTask {
 			// System.out.println(entry.getKey()+" "+entry.getValue());
 			vertList.add(new Vertex(entry.getKey(), entry.getValue()));
 		}
+//		for (Map.Entry<String, Vector<String>> entry : reachableList.entrySet())
 		for (String vertex : vertexList) {
 			adjList.put(vertex, new Vector<>());
 			for (String vert : vertexList) {
@@ -341,6 +342,7 @@ public class RcoreParallel extends AbstractTask {
 				RCoreKernel rc = new RCoreKernel();
 				rc.setL(l);
 				rc.setAdjList(adjList);
+//				rc.setReachableList(reachableList);
 				rc.setReachability(reachability);
 				rc.setVertexBuff(vertexBuff);
 				rc.setVertexList(vertexList);
@@ -371,7 +373,7 @@ public class RcoreParallel extends AbstractTask {
 		taskMonitor.setStatusMessage("Load data ....");
 		loadData();
 
-		taskMonitor.setProgress(0.4);
+		taskMonitor.setProgress(0.6);
 		taskMonitor.setStatusMessage("Computing R-core GPU ....");
 		
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy

@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import kcore.plugin.alg.param.KcoreParameters;
+import kcore.plugin.hc_parallel.MapComparator;
 import kcore.plugin.rcore.sequence.Edge;
 
 public class hc_algorithm extends AbstractTask {
@@ -236,9 +237,9 @@ public class hc_algorithm extends AbstractTask {
 		Path path = Paths.get(OUTPUT);
 		List<String> lines = new ArrayList<>();
 		// sort map by value
-		// Map<String, Integer> sortedMap = MapComparator.sortByValue(kCore);
+		Map<String, Double> sortedMap = MapComparator.sortByValue(hcEntropy);
 		lines.add("time start: " + start + " - " + "time end: " + end);
-		for (Map.Entry<String, Double> entry : hcEntropy.entrySet()) {
+		for (Map.Entry<String, Double> entry : sortedMap.entrySet()) {
 			lines.add(String.format("%s\t%.6f", entry.getKey(), entry.getValue()));
 		}
 		lines.add(String.format("%s\t%.5f", "HC Entropy", hcE));

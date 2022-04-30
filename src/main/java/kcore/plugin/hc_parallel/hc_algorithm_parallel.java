@@ -29,6 +29,11 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import javax.swing.JOptionPane;
 
 public class hc_algorithm_parallel extends AbstractTask {
@@ -40,17 +45,11 @@ public class hc_algorithm_parallel extends AbstractTask {
 		this.outputFile = path;
 		hc_algorithm_parallel.device = device;
 	}
-//	static {
-//		if(device == "CPU") {
-//			System.setProperty("com.aparapi.executionMode", "CPU");
-//		}
-//		else {
-//			System.setProperty("com.aparapi.executionMode", "GPU");
-//		}
-//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
-//	}
+	static {
+		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	}
 	// path to input/output file
 		private String inputFile;
 		private String outputFile;
@@ -278,14 +277,43 @@ public class hc_algorithm_parallel extends AbstractTask {
 			reachableList = hcRea.getReachableList();
 			hcRea.dispose();
 			
+			for (String ver : vertexList) {
+				Vert vert = new Vert(ver);
+				vertList.add(vert);
+			}
+			for (Vert vert : vertList) {
+				Vector<String> neighbour  = adjList.get(vert.getName());
+				if(neighbour != null) {
+					for (Vert v : vertList) {
+						if(neighbour.contains(v.getName())) {
+							vert.addNeighbour(new Edge1(1, vert, v));
+						}
+					}
+				}
+			}
+			for (Vert vert : vertList) {
+				double path = 0;
+				ShortestP(vert);
+				Set<String> rea = reachableList.get(vert.getName());
+					for (Vert v : vertList) {
+						if(rea != null && rea.contains(v.getName())) {
+							path += 1/v.getDist();
+						}
+						v.setDist(Double.MAX_VALUE);
+						v.setVisited(false);
+					}
+				closeness.put(vert.getName(), path/(vertexList.size()-1));
+			}
+			
 			//compute closeness
-			hcKernel_closeness hcClo = new hcKernel_closeness();
-			hcClo.setVertexList(vertexList);
-			hcClo.setAdjList(adjList);
-			hcClo.setReachableList(reachableList);
-			hcClo.execute(range);
-			closeness = hcClo.getCloseness();
-			hcClo.dispose();
+//			hcKernel_closeness hcClo = new hcKernel_closeness();
+//			hcClo.setVertexList(vertexList);
+//			hcClo.setAdjList(adjList);
+//			hcClo.setReachableList(reachableList);
+//			hcClo.setListVert(vertList);
+//			hcClo.execute(range);
+//			closeness = hcClo.getCloseness();
+//			hcClo.dispose();
 
 			for (Map.Entry<String, Integer> entry : reachability.entrySet()) {
 				vertexQueue.add(new Vertex(entry.getKey(), entry.getValue()));
@@ -338,29 +366,10 @@ public class hc_algorithm_parallel extends AbstractTask {
 			adjList.get(start).add(end);
 		}
 
-		public int countChildNode(String node, String source) {
-			int count = 0;
-			visited.add(node);
-			if (adjList.get(node) != null) {
-				for (String vertex : adjList.get(node)) {
-					if (!visited.contains(vertex)) {
-						if (adjList.get(vertex) != null && adjList.get(vertex).size() > 0) {
-							count = count + countChildNode(vertex, source);
-							// System.out.print(count+" ");
-						}
-						count = count + 1;
-						visited.add(vertex);
-						pushMapS(reachableList, source, vertex);
-					}
-				}
-			}
-			return count;
-		}
-
 		// compute
 		public void compute() {
-			System.out.println("reachability ss: " + reachability);
-			System.out.println("clossness: " + closeness);
+//			System.out.println("reachability ss: " + reachability);
+//			System.out.println("clossness: " + closeness);
 			Set<String> nodeList = reachability.keySet();
 			for (String node : nodeList) {
 				hc.put(node, (reachability.get(node) + closeness.get(node)));
@@ -421,7 +430,7 @@ public class hc_algorithm_parallel extends AbstractTask {
 		    timeEnd = sdfDate.format(now1);
 		    System.out.println("time end: " + timeEnd);
 		    
-			taskMonitor.setProgress(0.4);
+			taskMonitor.setProgress(0.8);
 			taskMonitor.setStatusMessage("Computing R-core ....");
 
 			compute();

@@ -16,20 +16,23 @@ public class hcKernel_closeness extends Kernel {
 	private Map<String, Double> closeness = new HashMap<>();
 	private Map<String, Set<String>> reachableList;
 	
+	private ArrayList<Vert> listVert;
+	
 	public hcKernel_closeness() {
-		super();
+		super.clone();
 	}
-
+	
 	@Override
 	public void run() {
+//		super.clone();
 		int index = getGlobalId();
-		ArrayList<Vert> vertList = new ArrayList<>();
-		double c = closeNess(index, vertList);
-		closeness.put(vertList.get(index).getName(), c);
+//		ArrayList<Vert> vertList = new ArrayList<>();
+		double c = closeNess(index, listVert);
+		closeness.put(listVert.get(index).getName(), c);
 	}
 	
 	public double closeNess(int index, ArrayList<Vert> vertList) {
-		initVertList(vertList);
+//		initVertList(vertList);
 		double path = 0;
 		ShortestP(vertList.get(index));
 		Set<String> rea = reachableList.get(vertList.get(index).getName());
@@ -82,6 +85,14 @@ public class hcKernel_closeness extends Kernel {
 				}
 			}
 		}
+	}
+
+	public ArrayList<Vert> getListVert() {
+		return listVert;
+	}
+
+	public void setListVert(ArrayList<Vert> listVert) {
+		this.listVert = listVert;
 	}
 
 	public Map<String, Vector<String>> getAdjList() {

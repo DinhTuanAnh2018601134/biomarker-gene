@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.biomarker.Biomaker;
+import kcore.plugin.biomarker_parallel.Biomarker_algorithm_parallel;
 import kcore.plugin.hc.hc_algorithm;
 import kcore.plugin.hc_parallel.hc_algorithm_parallel;
 import kcore.plugin.parallel.KcoreParallel;
@@ -163,6 +164,25 @@ public class KcoreRunner {
 		}
 		finally{
 			JOptionPane.showMessageDialog(null, "Compute Biomarker Success, open text file to see the result!", "Infor",
+					JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+	}
+	public void runBiomakerParallel() {
+		try {
+			Biomarker_algorithm_parallel alg = new Biomarker_algorithm_parallel(params, this.path,this.device);
+			TaskFactory factory = new TaskFactory(alg);
+			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
+			alg.cancel();
+		} catch (final Exception e) {
+			e.printStackTrace(System.err);
+			JOptionPane.showMessageDialog(ServicesUtil.cySwingApplicationServiceRef.getJFrame(),
+					"Error running Biomarker(1)!  " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		finally{
+			JOptionPane.showMessageDialog(null, "Compute Biomarker Parallel Success, open text file to see the result!", "Infor",
 					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}

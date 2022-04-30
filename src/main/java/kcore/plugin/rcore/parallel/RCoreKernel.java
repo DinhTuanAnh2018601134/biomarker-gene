@@ -16,9 +16,9 @@ public class RCoreKernel extends Kernel {
 	private Map<String, Vector<String>> adjList;
 	// map to store reachability
 	private Map<String, Integer> reachability;
+	private Map<String, Vector<String>> reachableList;
 	//array list to store adjbuff
 	private ArrayList<String> vertexBuff;
-	private ArrayList<String> vertexBuff1;
 	private Set<String> vertexList;
 	
 	public RCoreKernel() {
@@ -30,6 +30,23 @@ public class RCoreKernel extends Kernel {
 		int index = getGlobalId();
 		if(index < vertexBuff.size()) {
 			String vertex = vertexBuff.get(index);
+//			for (Map.Entry<String, Vector<String>> entry : reachableList.entrySet()){
+//				if(entry.getValue().contains(vertex)) {
+//					String vert = entry.getKey();
+//					int adjRea = reachability.get(vert);
+//					if(adjRea > l) {
+//						adjRea--;
+//						reachability.replace(vert, adjRea);
+//						if(adjRea == l) {
+//							vertexBuff.add(vert);
+//						}
+//						if(adjRea < l) {
+//							++adjRea;
+//							reachability.replace(vert, adjRea);
+//						}
+//					}
+//				}
+//			}
 			Vector<String> adjListV = adjList.get(vertex);
 			for (String vert : adjListV) {
 				int adjRea = reachability.get(vert);
@@ -38,22 +55,23 @@ public class RCoreKernel extends Kernel {
 					reachability.replace(vert, adjRea);
 					if(adjRea == l) {
 						vertexBuff.add(vert);
-//						vertexBuff1.add(vert);
 					}
 					if(adjRea < l) {
-						reachability.replace(vert, adjRea++);
+						++adjRea;
+						reachability.replace(vert, adjRea);
 					}
 				}
 			}
 		}
 	}
 	
-	public ArrayList<String> getVertexBuff1() {
-		return vertexBuff1;
+
+	public Map<String, Vector<String>> getReachableList() {
+		return reachableList;
 	}
 
-	public void setVertexBuff1(ArrayList<String> vertexBuff1) {
-		this.vertexBuff1 = vertexBuff1;
+	public void setReachableList(Map<String, Vector<String>> reachableList) {
+		this.reachableList = reachableList;
 	}
 
 	public Set<String> getVertexList() {
