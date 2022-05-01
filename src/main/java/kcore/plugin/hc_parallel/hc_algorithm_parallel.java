@@ -252,9 +252,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 		// load data
 		@SuppressWarnings("deprecation")
 		public void loadData() {
-			if(device == "CPU") {
-				System.setProperty("com.aparapi.executionMode", "JTP");
-			}
+//			if(device == "CPU") {
+//				System.setProperty("com.aparapi.executionMode", "JTP");
+//			}
+//			else {
+//				System.setProperty("com.aparapi.executionMode", "GPU");
+//			}
 //			else
 //				rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 			for (Edge edge : edgeList) {
@@ -269,6 +272,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 			
 			//compute reachability
 			hcKernel_reachability hcRea = new hcKernel_reachability();
+			if(device == "CPU") {
+				hcRea.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+			}
+			else {
+				hcRea.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+			}
 			hcRea.setAdjList(adjList);
 			hcRea.setVertextList(vertexs);
 			

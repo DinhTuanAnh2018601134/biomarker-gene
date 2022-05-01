@@ -34,7 +34,12 @@ import com.aparapi.Range;
 import kcore.plugin.alg.param.KcoreParameters;
 
 public class RcoreParallel extends AbstractTask {
-	private static final Logger logger = LoggerFactory.getLogger(RcoreParallel.class);
+	private static final Logger logger = LoggerFactory.getLogger(RcoreParallel.class);	
+	static {
+		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	}
 	private static String device;
 	 
 	public RcoreParallel(KcoreParameters params, String path, String device) {
@@ -42,17 +47,6 @@ public class RcoreParallel extends AbstractTask {
 		this.outputFile = path;
 		RcoreParallel.device = device;
 	}
-//	static {
-//		if(device == "CPU") {
-//			System.setProperty("com.aparapi.executionMode", "JTP");
-//		}
-//		else {
-//			System.setProperty("com.aparapi.executionMode", "GPU");
-//		}
-//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
-//	}
 
 	private String inputFile;
 	private String outputFile;
@@ -323,9 +317,12 @@ public class RcoreParallel extends AbstractTask {
 	// compute
 	@SuppressWarnings("deprecation")
 	public void compute() {
-		if(device == "CPU") {
-			System.setProperty("com.aparapi.executionMode", "JTP");
-		}
+//		if(device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "JTP");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
 //		else
 //			rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 		int i = 0;
@@ -340,6 +337,12 @@ public class RcoreParallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				Range range = Range.create(vertexList.size());
 				RCoreKernel rc = new RCoreKernel();
+				if(device == "CPU") {
+					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+				}
+				else {
+					rc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+				}
 				rc.setL(l);
 				rc.setAdjList(adjList);
 //				rc.setReachableList(reachableList);

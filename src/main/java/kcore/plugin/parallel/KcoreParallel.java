@@ -50,33 +50,17 @@ import com.aparapi.Range;
 
 public class KcoreParallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(KcoreParallel.class);
+	static {
+		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	}
 	private static String device;
 	public KcoreParallel(KcoreParameters params, String path, String device) {
 		this.params = params;
 		this.OUTPUT = path;
 		KcoreParallel.device = device;
 	}
-//	@Deprecated
-//	   public static enum EXECUTION_MODE {
-//	      AUTO,
-//	      NONE,
-//	      GPU,
-//	      CPU,
-//	      JTP,//Java Thread Pool
-//	      SEQ,
-//	      ACC;
-//	}
-//	static {
-//		if(KcoreParallel.device == "CPU") {
-//			System.setProperty("com.aparapi.executionMode", "JTP");
-//		}
-//		else {
-//			System.setProperty("com.aparapi.executionMode", "GPU");
-//		}
-//		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
-//		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
-//		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
-//	}
 	private String OUTPUT; 
 	private CyNetwork net;
 	private CyTable cyTable;
@@ -265,10 +249,14 @@ public class KcoreParallel extends AbstractTask {
 	}
 
 //	@SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation")
 	public void compute() {
-		if(device == "CPU") {
-			System.setProperty("com.aparapi.executionMode", "JTP");
-		}
+//		if(device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "JTP");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
 			
 //		else
 //			kc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
@@ -284,6 +272,12 @@ public class KcoreParallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				Range range = Range.create(vertexList.size());
 				KCoreKernel kc = new KCoreKernel();
+				if(device == "CPU") {
+					kc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+				}
+				else {
+					kc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+				}
 				kc.setL(l);
 				kc.setAdjList(adjList);
 				kc.setDegrees(degrees);

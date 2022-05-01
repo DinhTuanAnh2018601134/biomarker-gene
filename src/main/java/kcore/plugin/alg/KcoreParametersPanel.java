@@ -60,11 +60,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 	private JRadioButton sequenceDevice;
 	private JRadioButton gpuDevice;
 	private JRadioButton cpuDevice;
-	
-	private JPanel contentPane;
-	private final ButtonGroup buttonGroupProcess = new ButtonGroup();
-	private final ButtonGroup buttonGroupMethod = new ButtonGroup();
-	private final ButtonGroup buttonGroupProcessMethod = new ButtonGroup();
 
 	public KcoreParametersPanel(NetworkSelectorPanel gtaNetworkSelectorPanel) {
 		this.networkSelectorPanel = gtaNetworkSelectorPanel;

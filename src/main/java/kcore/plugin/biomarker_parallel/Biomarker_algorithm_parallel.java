@@ -40,6 +40,11 @@ import javax.swing.JOptionPane;
 
 public class Biomarker_algorithm_parallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(Biomarker_algorithm_parallel.class);
+	static {
+		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
+		System.setProperty("com.aparapi.enableExecutionModeReporting", "false");
+		System.setProperty("com.aparapi.enableShowGeneratedOpenCL", "false");
+	}
 	private static String device;
 	
 	public Biomarker_algorithm_parallel(KcoreParameters params, String path, String device) {
@@ -249,10 +254,14 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
     }
 
 	// load data
+	@SuppressWarnings("deprecation")
 	public void loadData() {
-		if(device == "CPU") {
-			System.setProperty("com.aparapi.executionMode", "JTP");
-		}
+//		if(device == "CPU") {
+//			System.setProperty("com.aparapi.executionMode", "JTP");
+//		}
+//		else {
+//			System.setProperty("com.aparapi.executionMode", "GPU");
+//		}
 //		else
 //			rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 		for (Edge edge : edgeList) {
@@ -267,6 +276,12 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 		
 		//compute reachability
 		hcKernel_reachability hcRea = new hcKernel_reachability();
+		if(device == "CPU") {
+			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+		}
+		else {
+			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+		}
 		hcRea.setAdjList(adjList);
 		hcRea.setVertextList(vertexs);
 		
@@ -332,6 +347,12 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				range = Range.create(vertexList.size());
 				RCoreKernel rc = new RCoreKernel();
+				if(device == "CPU") {
+					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+				}
+				else {
+					rc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+				}
 				rc.setL(l);
 				rc.setReachableList(reachableList);
 				rc.setReachability(reachability);
