@@ -130,9 +130,9 @@ public class KcoreRunner {
 		}
 
 	}
-	public void runHcParallel() {
+	public void runHcParallel(boolean bio) {
 		try {
-			hc_algorithm_parallel alg = new hc_algorithm_parallel(params,this.path, this.device);
+			hc_algorithm_parallel alg = new hc_algorithm_parallel(params,this.path, this.device, bio);
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			alg.cancel();

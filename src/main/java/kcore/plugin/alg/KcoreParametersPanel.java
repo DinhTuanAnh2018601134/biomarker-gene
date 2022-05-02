@@ -384,7 +384,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
-				alg.runHcParallel();
+				alg.runHcParallel(false);
 			}
 			//HC GPU
 			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
@@ -392,7 +392,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
-				alg.runHcParallel();
+				alg.runHcParallel(false);
 			}
 			//BiomarkerGene sequence
 			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
@@ -409,6 +409,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
 				alg.runBiomakerParallel();
+//				alg.runRcoreGPU();
+//				alg.runHcParallel(true);
 			}
 			//BiomarkerGene GPU
 			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
@@ -417,6 +419,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
 				alg.runBiomakerParallel();
+//				alg.runRcoreGPU();
+//				alg.runHcParallel(true);
 			}
 			 else {
 				JOptionPane.showMessageDialog(null, "Chọn một thiết bị thực thi.");

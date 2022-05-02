@@ -347,12 +347,12 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				range = Range.create(vertexList.size());
 				RCoreKernel rc = new RCoreKernel();
-				if(device == "CPU") {
-					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
-				}
-				else {
-					rc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
-				}
+//				if(device == "CPU") {
+//					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+//				}
+//				else {
+//					rc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+//				}
 				rc.setL(l);
 				rc.setReachableList(reachableList);
 				rc.setReachability(reachability);

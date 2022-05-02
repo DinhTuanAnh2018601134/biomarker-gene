@@ -39,11 +39,13 @@ import javax.swing.JOptionPane;
 public class hc_algorithm_parallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(hc_algorithm_parallel.class);
 	private static String device;
+	private boolean bio;
 	
-	public hc_algorithm_parallel(KcoreParameters params, String path, String device) {
+	public hc_algorithm_parallel(KcoreParameters params, String path, String device, boolean bio) {
 		this.params = params;
 		this.outputFile = path;
 		hc_algorithm_parallel.device = device;
+		this.bio = bio;
 	}
 	static {
 		System.setProperty("com.aparapi.dumpProfilesOnExit", "true");
@@ -353,6 +355,36 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 			Files.write(path, lines);
 		}
+		public void writeText(String start, String end) {
+			try{
+		        File file =new File(outputFile);
+
+		        if(!file.exists()){
+		           file.createNewFile();
+		        }
+		        List<String> lines = new ArrayList<>();
+		        lines.add("\t\tHC");
+		        for (Map.Entry<String, Double> entry : sortedMap.entrySet()) {
+					lines.add(String.format("\t\t%f", entry.getValue() + 1));
+				}
+		        //Here true is to append the content to file
+		        FileWriter fw = new FileWriter(file.getAbsoluteFile(),true);
+		        //BufferedWriter writer give better performance
+		        BufferedWriter bw = new BufferedWriter(fw);
+		        for (String line : lines) {
+		        	bw.write(line);
+				}
+		        
+		        //Closing BufferedWriter Stream
+		        bw.close();
+		 
+		        System.out.println("Data successfully appended at the end of file");
+		 
+		      }catch(IOException ioe){
+		         System.out.println("Exception occurred:");
+		         ioe.printStackTrace();
+		       }
+		}
 
 		// push value to map
 		public void pushMapV(Map<String, Vector<String>> adjList, String start, String end, int weight) {
@@ -446,7 +478,10 @@ public class hc_algorithm_parallel extends AbstractTask {
 
 			taskMonitor.setProgress(0.9);
 			taskMonitor.setStatusMessage("Write result....");
-			writeTextFile(timeStart, timeEnd);
+			if(!bio)
+				writeTextFile(timeStart, timeEnd);
+			else
+				writeText(timeStart, timeEnd);
 			// createColumn();
 
 			taskMonitor.setProgress(1.0);
