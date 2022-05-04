@@ -57,6 +57,15 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 	private JComboBox<NetFilteringMethod> netFilteringMethod;
 
+	private javax.swing.JPanel mainPanel;
+	private javax.swing.JPanel subPanel;
+	private JRadioButton sequenceBio;
+	private JRadioButton cpuBio;
+	private JRadioButton gpuBio;
+	
+	private JRadioButton kCore;
+	private JRadioButton rCore;
+	private JRadioButton hc;
 	private JRadioButton sequenceDevice;
 	private JRadioButton gpuDevice;
 	private JRadioButton cpuDevice;
@@ -138,39 +147,20 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 		javax.swing.JPanel advancedConfigPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
 		advancedConfigPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Advanced Options"));
-		
 		// content
-		advancedConfigPanel.add(new java.awt.Label("Choose method:"),
-				gridConstraint(0, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(new java.awt.Label("Choose method:"),
+//				gridConstraint(0, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		netFilteringMethod = new JComboBox<NetFilteringMethod>(NetFilteringMethod.values());
-		advancedConfigPanel.add(netFilteringMethod,
-				gridConstraint(1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
-//		this.netFilteringMethod.addItemListener(new ItemListener() {
-//			@Override
-//			public void itemStateChanged(ItemEvent e) {
-//				updateAttributePanel();
-//				 Object item = e.getItem();
-//				 if(item == NetFilteringMethod.FILTER_BY_HC || item == NetFilteringMethod.FILTER_BY_BIO){
-//						cpuDevice.setSelected(true);
-//						gpuDevice.setSelected(false);
-//						gpuDevice.setVisible(false);
-//					}
-//				 else{
-//					 cpuDevice.setVisible(true);
-//					 gpuDevice.setVisible(true);
-//				 }
-//				
-//			}
-//		});
-
+//		advancedConfigPanel.add(netFilteringMethod,
+//				gridConstraint(1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		
 		sequenceDevice = new JRadioButton("Sequence");
-		advancedConfigPanel.add(sequenceDevice,
-				gridConstraint(0, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(sequenceDevice,
+//				gridConstraint(0, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		
 		cpuDevice = new JRadioButton("CPU");
-		advancedConfigPanel.add(cpuDevice,
-				gridConstraint(0, 4, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(cpuDevice,
+//				gridConstraint(0, 4, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 
 		gpuDevice = new JRadioButton("GPU");
 		// set action
@@ -208,30 +198,75 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 			}
 		});
 
-		advancedConfigPanel.add(gpuDevice,
-				gridConstraint(0, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(gpuDevice,
+//				gridConstraint(0, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		// demo
-		advancedConfigPanel.add(new java.awt.Label(""),
-				gridConstraint(0, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
-		advancedConfigPanel.add(new java.awt.Label(""),
-				gridConstraint(1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
-		advancedConfigPanel.add(new java.awt.Label(""),
-				gridConstraint(0, 5, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(new java.awt.Label(""),
+//				gridConstraint(0, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(new java.awt.Label(""),
+//				gridConstraint(1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(new java.awt.Label(""),
+//				gridConstraint(0, 5, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
 
-		advancedConfigPanel.add(new java.awt.Label(""),
-				gridConstraint(1, 5, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
+//		advancedConfigPanel.add(new java.awt.Label(""),
+//				gridConstraint(1, 5, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL));
+		//new content
+		JTabbedPane tabbedPane = new JTabbedPane();
+		mainPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
+		mainPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null,1));
+		subPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
+		subPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null,1));
+		tabbedPane.addTab("Biomarker Gene", null, mainPanel, "click to show mainPanel");
+		tabbedPane.addTab("Extend Function", null, subPanel, "click to show subPanel");
+		
+		ButtonGroup btnGroupBio = new ButtonGroup();
+		sequenceBio = new JRadioButton("sequence");
+		cpuBio = new JRadioButton("CPU");
+		gpuBio = new JRadioButton("GPU");
+		btnGroupBio.add(sequenceBio);
+		btnGroupBio.add(cpuBio);
+		btnGroupBio.add(gpuBio);
+		sequenceBio.setSelected(true);
+		mainPanel.add(new java.awt.Label("Choose device:"),
+		gridConstraint(1, 2, 2, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		mainPanel.add(sequenceBio,gridConstraint(1, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		mainPanel.add(cpuBio,gridConstraint(1, 4, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		mainPanel.add(gpuBio,gridConstraint(1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		
+		ButtonGroup btnGroup = new ButtonGroup();
+		kCore = new JRadioButton("K-core");
+		rCore = new JRadioButton("R-core");
+		hc = new JRadioButton("Hierarchical closeness");
+		kCore.setSelected(true);
+		btnGroup.add(kCore);
+		btnGroup.add(rCore);
+		btnGroup.add(hc);
+		subPanel.add(new java.awt.Label("Choose function:"),
+				gridConstraint(1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(new java.awt.Label("Choose device:"),
+				gridConstraint(2, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(sequenceDevice,gridConstraint(2, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(cpuDevice,gridConstraint(2, 4, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(gpuDevice,gridConstraint(2, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(kCore,gridConstraint(1, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(rCore,gridConstraint(1, 4, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		subPanel.add(hc,gridConstraint(1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
+		
 		// end content
-
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
 		gridBagConstraints.weightx = 1.0;
 		gridBagConstraints.weighty = 1.0;
 		gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
-		bothAttributeSelectorPanel.add(advancedConfigPanel, gridBagConstraints);
+		bothAttributeSelectorPanel.add(tabbedPane, gridBagConstraints);
 
 		configPanel.add(bothAttributeSelectorPanel,
 				gridConstraint(0, 1, 1, 1, GridBagConstraints.PAGE_START, GridBagConstraints.BOTH));
+//		bothAttributeSelectorPanel.add(advancedConfigPanel, gridBagConstraints);
+//
+//		configPanel.add(bothAttributeSelectorPanel,
+//				gridConstraint(0, 1, 1, 1, GridBagConstraints.PAGE_START, GridBagConstraints.BOTH));
 
 		gridBagConstraints = new java.awt.GridBagConstraints();
 		gridBagConstraints.gridy = 1;
@@ -240,7 +275,6 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		gridBagConstraints.weighty = 1.0;
 		gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
 		add(configPanel, gridBagConstraints);
-
 	}
 
 	private String showSaveFileDialog() {
@@ -320,16 +354,16 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 
 		private void runAlgorithm(String path) {
 			//K-core sequence
-			if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE && !cpuDevice.isSelected()
-					&& !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+			if (subPanel.isVisible() && sequenceDevice.isSelected() && kCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(0);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "");
 				alg.runKcore();
 			} 
 			//R-core sequence
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
-					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && sequenceDevice.isSelected() && rCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(1);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "");
@@ -337,8 +371,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				
 			} 
 			//K-core CPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE
-					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && cpuDevice.isSelected() && kCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(0);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
@@ -346,8 +380,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				
 			} 
 			//K-core GPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE
-					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && gpuDevice.isSelected() && kCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(0);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
@@ -355,56 +389,56 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				
 			} 
 			//R-core CPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
-					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && cpuDevice.isSelected() && rCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(1);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
 				alg.runRcoreGPU();
 			}
 			//R-core GPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
-					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && gpuDevice.isSelected() && rCore.isSelected()) {
+				netFilteringMethod.setSelectedIndex(1);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
 				alg.runRcoreGPU();
 			}
 			//HC sequence
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
-					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && sequenceDevice.isSelected() && hc.isSelected()) {
+				netFilteringMethod.setSelectedIndex(2);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "");
 				alg.runHc();
 			}
 			//HC CPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
-					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && cpuDevice.isSelected() && hc.isSelected()) {
+				netFilteringMethod.setSelectedIndex(2);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
 				alg.runHcParallel(false);
 			}
 			//HC GPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
-					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (subPanel.isVisible() && gpuDevice.isSelected() && hc.isSelected()) {
+				netFilteringMethod.setSelectedIndex(2);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
 				alg.runHcParallel(false);
 			}
 			//BiomarkerGene sequence
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
-					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+			else if (mainPanel.isVisible() && sequenceBio.isSelected()) {
+				netFilteringMethod.setSelectedIndex(3);
 					KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 							(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 					KcoreRunner alg = new KcoreRunner(params, path, "");
 					alg.runBiomaker();
 			}
 			//BiomarkerGene CPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
-					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (mainPanel.isVisible() && cpuBio.isSelected()) {
+				netFilteringMethod.setSelectedIndex(3);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
@@ -413,8 +447,8 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 //				alg.runHcParallel(true);
 			}
 			//BiomarkerGene GPU
-			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
-					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+			else if (mainPanel.isVisible() && gpuBio.isSelected()) {
+				netFilteringMethod.setSelectedIndex(3);
 				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
 						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
 				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
@@ -427,7 +461,116 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 				return;
 			}
 		}
-
+		
+//		private void runAlgorithm(String path) {
+//			//K-core sequence
+//			if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE && !cpuDevice.isSelected()
+//					&& !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "");
+//				alg.runKcore();
+//			} 
+//			//R-core sequence
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
+//					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "");
+//				alg.runRcore();
+//				
+//			} 
+//			//K-core CPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE
+//					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
+//				alg.runKcoreGPU();
+//				
+//			} 
+//			//K-core GPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_KCORE
+//					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
+//				alg.runKcoreGPU();
+//				
+//			} 
+//			//R-core CPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
+//					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
+//				alg.runRcoreGPU();
+//			}
+//			//R-core GPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_RCORE
+//					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
+//				alg.runRcoreGPU();
+//			}
+//			//HC sequence
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
+//					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "");
+//				alg.runHc();
+//			}
+//			//HC CPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
+//					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
+//				alg.runHcParallel(false);
+//			}
+//			//HC GPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_HC
+//					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
+//				alg.runHcParallel(false);
+//			}
+//			//BiomarkerGene sequence
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+//					&& !cpuDevice.isSelected() && !gpuDevice.isSelected() && sequenceDevice.isSelected()) {
+//					KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//							(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//					KcoreRunner alg = new KcoreRunner(params, path, "");
+//					alg.runBiomaker();
+//			}
+//			//BiomarkerGene CPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+//					&& cpuDevice.isSelected() && !gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "CPU");
+//				alg.runBiomakerParallel();
+////				alg.runRcoreGPU();
+////				alg.runHcParallel(true);
+//			}
+//			//BiomarkerGene GPU
+//			else if (netFilteringMethod.getSelectedItem() == NetFilteringMethod.FILTER_BY_BIO
+//					&& !cpuDevice.isSelected() && gpuDevice.isSelected() && !sequenceDevice.isSelected()) {
+//				KcoreParameters params = new KcoreParameters(networkSelectorPanel.getSelectedNetwork(), 10,
+//						(NetFilteringMethod) netFilteringMethod.getSelectedItem());
+//				KcoreRunner alg = new KcoreRunner(params, path, "GPU");
+//				alg.runBiomakerParallel();
+////				alg.runRcoreGPU();
+////				alg.runHcParallel(true);
+//			}
+//			 else {
+//				JOptionPane.showMessageDialog(null, "Chọn một thiết bị thực thi.");
+//				return;
+//			}
+//		}
 	}
 
 }
