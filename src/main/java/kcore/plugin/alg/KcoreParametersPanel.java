@@ -154,7 +154,7 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 //		advancedConfigPanel.add(netFilteringMethod,
 //				gridConstraint(1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		
-		sequenceDevice = new JRadioButton("Sequence");
+		sequenceDevice = new JRadioButton("Auto");
 //		advancedConfigPanel.add(sequenceDevice,
 //				gridConstraint(0, 3, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL));
 		
@@ -216,11 +216,11 @@ public class KcoreParametersPanel extends JPanel implements ColumnCreatedListene
 		mainPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null,1));
 		subPanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
 		subPanel.setBorder(javax.swing.BorderFactory.createLineBorder(null,1));
-		tabbedPane.addTab("Biomarker Gene", null, mainPanel, "click to show mainPanel");
-		tabbedPane.addTab("Extend Function", null, subPanel, "click to show subPanel");
+		tabbedPane.addTab("Biomarker nodes", null, mainPanel, "click to show mainPanel");
+		tabbedPane.addTab("Extension", null, subPanel, "click to show subPanel");
 		
 		ButtonGroup btnGroupBio = new ButtonGroup();
-		sequenceBio = new JRadioButton("sequence");
+		sequenceBio = new JRadioButton("Auto");
 		cpuBio = new JRadioButton("CPU");
 		gpuBio = new JRadioButton("GPU");
 		btnGroupBio.add(sequenceBio);

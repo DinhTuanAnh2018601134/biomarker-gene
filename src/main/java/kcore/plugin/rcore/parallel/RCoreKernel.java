@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import com.aparapi.Kernel;
 
@@ -19,46 +21,50 @@ public class RCoreKernel extends Kernel {
 	private Map<String, Vector<String>> reachableList;
 	//array list to store adjbuff
 	private ArrayList<String> vertexBuff;
-	private Set<String> vertexList;
+	private ArrayList<String> vertexList;
+	private AtomicIntegerArray atomicRCore;
 	
-	public RCoreKernel() {
-		super();
+	public RCoreKernel(Set<String> keySet) {
+//		super();
+		vertexList = new ArrayList<String>(keySet);
 	}
 
 	@Override
 	public void run() {
-		int index = getGlobalId();
-		if(index < vertexBuff.size()) {
+		if(getGlobalId() < vertexBuff.size()) {
+			int index = getGlobalId();
 			String vertex = vertexBuff.get(index);
 //			for (Map.Entry<String, Vector<String>> entry : reachableList.entrySet()){
 //				if(entry.getValue().contains(vertex)) {
 //					String vert = entry.getKey();
-//					int adjRea = reachability.get(vert);
+//					int ind = vertexList.indexOf(vert);
+//					int adjRea = atomicRCore.get(ind);
 //					if(adjRea > l) {
-//						adjRea--;
-//						reachability.replace(vert, adjRea);
+//						adjRea = atomicRCore.decrementAndGet(ind);
 //						if(adjRea == l) {
 //							vertexBuff.add(vert);
 //						}
 //						if(adjRea < l) {
-//							++adjRea;
-//							reachability.replace(vert, adjRea);
+//							atomicRCore.incrementAndGet(ind);
 //						}
 //					}
 //				}
 //			}
 			Vector<String> adjListV = adjList.get(vertex);
 			for (String vert : adjListV) {
-				int adjRea = reachability.get(vert);
+				int ind = vertexList.indexOf(vert);
+				int adjRea = atomicRCore.get(ind);
 				if(adjRea > l) {
-					adjRea--;
-					reachability.replace(vert, adjRea);
+//					adjRea--;
+//					reachability.replace(vert, count.get());
+					adjRea = atomicRCore.decrementAndGet(ind);
 					if(adjRea == l) {
 						vertexBuff.add(vert);
 					}
 					if(adjRea < l) {
-						++adjRea;
-						reachability.replace(vert, adjRea);
+//						++adjRea;
+//						reachability.replace(vert, count.get());
+						atomicRCore.incrementAndGet(ind);
 					}
 				}
 			}
@@ -66,20 +72,20 @@ public class RCoreKernel extends Kernel {
 	}
 	
 
+	public AtomicIntegerArray getAtomicRCore() {
+		return atomicRCore;
+	}
+
+	public void setAtomicRCore(AtomicIntegerArray atomicRCore) {
+		this.atomicRCore = atomicRCore;
+	}
+
 	public Map<String, Vector<String>> getReachableList() {
 		return reachableList;
 	}
 
 	public void setReachableList(Map<String, Vector<String>> reachableList) {
 		this.reachableList = reachableList;
-	}
-
-	public Set<String> getVertexList() {
-		return vertexList;
-	}
-
-	public void setVertexList(Set<String> vertexList) {
-		this.vertexList = vertexList;
 	}
 
 	public int getVisitedVertex() {
@@ -125,6 +131,5 @@ public class RCoreKernel extends Kernel {
 	public void setVertexBuff(ArrayList<String> vertexBuff) {
 		this.vertexBuff = vertexBuff;
 	}
-
 	
 }

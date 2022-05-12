@@ -1,6 +1,8 @@
 package kcore.plugin.rcore.sequence;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
+
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -155,9 +157,11 @@ public class RCore extends AbstractTask {
 				
 				Edge edge = new Edge(subName[0], subName[subName.length - 1], direction == DirectionType.DIRECTED ? 1:0, 1);
 				edgeList.add(edge);
-			}else if (type.contains("compound")) {
+			}
+			else if (type.contains("compound")) {
 
-			} else {
+			}
+			else {
 				DirectionType direction = getType(type);
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");
@@ -252,6 +256,13 @@ public class RCore extends AbstractTask {
 		}
 
 		Files.write(path, lines);
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process p = rt.exec("notepad " + path.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	// push value to map

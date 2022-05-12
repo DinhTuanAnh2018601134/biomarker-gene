@@ -158,9 +158,11 @@ public class Biomaker extends AbstractTask {
 					unCount++;
 				}
 				
-			}else if (type.contains("compound")) {
-
-			} else {
+			}
+//			else if (type.contains("compound")) {
+//
+//			} 
+			else {
 				DirectionType direction = getType(type);
 
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
@@ -186,9 +188,9 @@ public class Biomaker extends AbstractTask {
 	public void setArHC(ArrayList<String> ar1, ArrayList<String> ar2, String key, int type) {
 		for (int k = 0; k < listNode.size(); k++) {
 			String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
-			if (subName.contains("container")) {
-
-			} else {
+//			if (subName.contains("container")) {
+//
+//			} else {
 				String[] subNameArray = subName.split(":");
 				// lay ra entryId
 				String subItem = subNameArray[subNameArray.length - 1];
@@ -209,7 +211,7 @@ public class Biomaker extends AbstractTask {
 					}
 
 				}
-			}
+//			}
 		}
 	}
 
@@ -814,6 +816,15 @@ public class Biomaker extends AbstractTask {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process p = rt.exec("notepad " + path.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(path.toString());
 	}
 
 	@Override

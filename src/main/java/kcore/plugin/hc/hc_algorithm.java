@@ -245,6 +245,14 @@ public class hc_algorithm extends AbstractTask {
 		lines.add(String.format("%s\t%.5f", "HC Entropy", hcE));
 
 		Files.write(path, lines);
+
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process p = rt.exec("notepad " + path.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void ReadSignalingNetworkFile() {

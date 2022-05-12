@@ -142,9 +142,11 @@ public class Kcore extends AbstractTask {
 				Edge edge = new Edge(subName[0],subName[subName.length - 1], 1, 1);
 				edgeList.add(edge);
 			
-			}else if (type.contains("compound")) {
-
-			} else {
+			}
+//			else if (type.contains("compound")) {
+//
+//			} 
+			else {
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");
 				ArrayList<String> firstEdge = new ArrayList<>();
@@ -243,7 +245,14 @@ public class Kcore extends AbstractTask {
 //				lines.add(String.format("%s\t%s\t%d", edge.getStartNode(), edge.getEndNode(), edge.getWeight()));
 //			}
 
-			Files.write(path, lines);
+//			Files.write(path, lines);
+			Runtime rt = Runtime.getRuntime();
+			try {
+				Process p = rt.exec("notepad " + path.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	
 	}
 

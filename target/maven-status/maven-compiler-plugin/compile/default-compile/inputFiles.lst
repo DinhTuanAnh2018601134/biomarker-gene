@@ -14,7 +14,6 @@ D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcor
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\rcore\parallel\MapComparator.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\service\TaskFactory.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\ui\UI.java
-D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\alg\giaodien.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\biomarker_parallel\Vert.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\hc\DirectionType.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\alg\KcoreRunner.java
@@ -44,6 +43,7 @@ D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcor
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\rcore\parallel\Edge.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\biomarker_parallel\Edge1.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\biomarker_parallel\Edge.java
+D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\rcore\parallel\Atomic.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\sequence\Kcore.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\biomarker\Vertex.java
 D:\Thuc Tap\Tài Li?u\chuong trinh\KcoreParallel\KcoreParallel\src\main\java\kcore\plugin\ui\KcorePanelComponent.java

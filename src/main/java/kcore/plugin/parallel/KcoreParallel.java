@@ -6,6 +6,7 @@ package kcore.plugin.parallel;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +17,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 import javax.swing.JOptionPane;
 
@@ -47,6 +52,8 @@ import kcore.plugin.service.ServicesUtil;
 
 import com.aparapi.Kernel;
 import com.aparapi.Range;
+
+import EDU.oswego.cs.dl.util.concurrent.Barrier;
 
 public class KcoreParallel extends AbstractTask {
 	private static final Logger logger = LoggerFactory.getLogger(KcoreParallel.class);
@@ -80,6 +87,8 @@ public class KcoreParallel extends AbstractTask {
 	// vertex queue
 	private ArrayList<Vertex> vertexList;
 	private ArrayList<String> vertexBuff;
+	private int kCore[];
+	private AtomicIntegerArray atomickCore;
 
 	private boolean cancelled = false;
 	
@@ -95,6 +104,7 @@ public class KcoreParallel extends AbstractTask {
 		degrees = new HashMap<String, Integer>();
 		vertexList = new ArrayList<Vertex>();
 		vertexBuff = new ArrayList<>();
+//		kCore = new ArrayList<>();
 
 		// init cytoscape network
 
@@ -141,9 +151,11 @@ public class KcoreParallel extends AbstractTask {
 				Edge edge = new Edge(subName[0],subName[subName.length - 1], 1, 1);
 				edgeList.add(edge);
 			
-			}else if (type.contains("compound")) {
+			}
+			else if (type.contains("compound")) {
 
-			} else {
+			}
+			else {
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");
 				ArrayList<String> firstEdge = new ArrayList<>();
@@ -212,17 +224,27 @@ public class KcoreParallel extends AbstractTask {
 
 		for (Map.Entry<String, Vector<String>> entry : adjList.entrySet()) {
 			degrees.put(entry.getKey(), entry.getValue().size());
+//			kCore.add(entry.getValue().size());
 			logger.info("list adj: " + entry.getKey() + " " + entry.getValue().size());
 		}
 
 		for (Map.Entry<String, Integer> entry : degrees.entrySet()) {
 			vertexList.add(new Vertex(entry.getKey(), entry.getValue()));
 		}
-
+		kCore = new int[degrees.size()];
+		int i = 0;
+		for (Map.Entry<String, Vector<String>> entry : adjList.entrySet()) {
+			kCore[i] = entry.getValue().size();
+			i++;
+		}
+		atomickCore = new AtomicIntegerArray(kCore);
 	}
 
 	// write result to output.txt
 	public void writeFile(String start, String end) throws Exception {
+		for(int i = 0; i< vertexList.size(); i++) {
+			degrees.replace(vertexList.get(i).getVertex(), atomickCore.get(i));
+		}
 		// save result	
 			Path path = Paths.get(OUTPUT);
 			List<String> lines = new ArrayList<>();
@@ -236,7 +258,15 @@ public class KcoreParallel extends AbstractTask {
 			}
 			Files.write(path, lines);
 
-			Files.write(path, lines);
+//			Files.write(path, lines);
+
+			Runtime rt = Runtime.getRuntime();
+			try {
+				Process p = rt.exec("notepad " + path.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	
 	}
 
@@ -248,7 +278,6 @@ public class KcoreParallel extends AbstractTask {
 		adjList.get(cyNode).add(cyNode2);
 	}
 
-//	@SuppressWarnings("deprecation")
 	@SuppressWarnings("deprecation")
 	public void compute() {
 //		if(device == "CPU") {
@@ -263,37 +292,41 @@ public class KcoreParallel extends AbstractTask {
 		int i = 0;
 		int l = 0;
 		while (i < vertexList.size()) {
-			for (Vertex vert : vertexList) {
-				String vertName = vert.getVertex();
-				if(degrees.get(vertName) == l) {
-					vertexBuff.add(vert.getVertex());
+			System.out.println("core " + l);
+			for (int j = 0; j < vertexList.size(); j++) {
+				String vertName = vertexList.get(j).getVertex();
+				if(atomickCore.get(j) == l) {
+					vertexBuff.add(vertName);
 				}
 			}
 			if(vertexBuff.size() > 0) {
 				Range range = Range.create(vertexList.size());
-				KCoreKernel kc = new KCoreKernel();
+				KCoreKernel kc = new KCoreKernel(degrees);
 				if(device == "CPU") {
 					kc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
 				}
-				else {
-					kc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
-				}
+//				else {
+//					kc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+//				}
 				kc.setL(l);
 				kc.setAdjList(adjList);
-				kc.setDegrees(degrees);
+//				kc.setDegrees(degrees);
 				kc.setVertexBuff(vertexBuff);
+				kc.setAtomickCore(atomickCore);
+//				kc.setBa(ba);
+//				System.out.println("atomic: " + atomickCore.toString());
 				
 				kc.execute(range);
-				degrees = kc.getDegrees();
+//				degrees = kc.getDegrees();
+//				kCore = kc.getkCore();
+				atomickCore = kc.getAtomickCore();
 				i += kc.getVisitedVertex();
+//				System.out.println("new atomic: " + atomickCore.toString());
 				kc.dispose();
 				vertexBuff.clear();
 			}
 			l++;
 		}
-//		for (Vertex vert : vertexList) {
-//			System.out.print(vert.getVertex() + " ");
-//		}
 		
 //		KernelPreferences preferences = KernelManager.instance().getDefaultPreferences();
 //	      System.out.println("-- Devices in preferred order --");

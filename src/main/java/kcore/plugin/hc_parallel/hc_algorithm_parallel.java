@@ -88,6 +88,14 @@ public class hc_algorithm_parallel extends AbstractTask {
 		private String timeStart;
 		private String timeEnd;
 
+		public Map<String, Double> getHc() {
+			return hc;
+		}
+
+		public void setHc(Map<String, Double> hc) {
+			this.hc = hc;
+		}
+
 		public hc_algorithm_parallel() {
 			init();
 		}
@@ -354,6 +362,14 @@ public class hc_algorithm_parallel extends AbstractTask {
 			}
 
 			Files.write(path, lines);
+
+			Runtime rt = Runtime.getRuntime();
+			try {
+				Process p = rt.exec("notepad " + path.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		public void writeText(String start, String end) {
 			try{

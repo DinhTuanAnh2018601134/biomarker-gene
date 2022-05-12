@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import javax.swing.JOptionPane;
 
@@ -61,7 +62,7 @@ public class RcoreParallel extends AbstractTask {
 	// list to store edges
 	private List<Edge> edgeList;
 	// map to store r-core
-	private Map<String, Integer> rCore;
+//	private Map<String, Integer> rCore;
 	// map to store reachability adjacency list
 	private Map<String, Vector<String>> ReaAdjList;
 	// map to store adjacency list
@@ -81,7 +82,17 @@ public class RcoreParallel extends AbstractTask {
 	
 	private String timeStart;
 	private String timeEnd;
+	private int rCore[];
+	private AtomicIntegerArray atomicRCore;
 	
+	public Map<String, Integer> getReachability() {
+		return reachability;
+	}
+
+	public void setReachability(Map<String, Integer> reachability) {
+		this.reachability = reachability;
+	}
+
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
 		for (String temp : type) {
@@ -100,7 +111,7 @@ public class RcoreParallel extends AbstractTask {
 	// initialize
 	public void init() {
 		edgeList = new ArrayList<>();
-		rCore = new HashMap<>();
+//		rCore = new HashMap<>();
 		ReaAdjList = new HashMap<>();
 		adjList = new HashMap<>();
 		reachability = new HashMap<>();
@@ -148,7 +159,7 @@ public class RcoreParallel extends AbstractTask {
 			// get first edge of edge table
 			List<String> type = cyTable.getRow(listEdge.get(i).getSUID()).get("KEGG_EDGE_SUBTYPES", List.class);
 			if(type == null) {
-				List<String> txtType =  cyTable.getRow(listEdge.get(i).getSUID()).get("direction", List.class);
+				List<String> txtType =  cyTable.getRow(listEdge.get(i).getSUID()).get("Direction", List.class);
 				DirectionType direction = getType(txtType);
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");
@@ -244,17 +255,27 @@ public class RcoreParallel extends AbstractTask {
 //		for (Map.Entry<String, Vector<String>> entry : reachableList.entrySet())
 		for (String vertex : vertexList) {
 			adjList.put(vertex, new Vector<>());
+			adjList.get(vertex).add(vertex);
 			for (String vert : vertexList) {
 				if(reachableList.get(vert) != null && reachableList.get(vert).contains(vertex)) {
 					adjList.get(vertex).add(vert);
 				}
 			}
 		}
+		rCore = new int[vertexList.size()];
+		int i = 0;
+		for (Map.Entry<String, Integer> entry : reachability.entrySet()) {
+			rCore[i] = entry.getValue();
+			i++;
+		}
+		atomicRCore = new AtomicIntegerArray(rCore);
 	}
 
 	// write result to output.txt
 	public void writeTextFile(String start, String end) throws Exception {
-
+		for(int i = 0; i< vertexList.size(); i++) {
+			reachability.replace(vertList.get(i).getVertex(), atomicRCore.get(i));
+		}
 		Path path = Paths.get(outputFile);
 		List<String> lines = new ArrayList<>();
 		// sort map by value
@@ -266,6 +287,14 @@ public class RcoreParallel extends AbstractTask {
 		}
 
 		Files.write(path, lines);
+
+		Runtime rt = Runtime.getRuntime();
+		try {
+			Process p = rt.exec("notepad " + path.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 //	public void pushMap(Map<String, Vector<String>> adjList, String cyNode, String cyNode2) {
@@ -328,15 +357,15 @@ public class RcoreParallel extends AbstractTask {
 		int i = 0;
 		int l = 0;
 		while (i < vertexList.size()) {
-			for (Vertex vert : vertList) {
-				String vertName = vert.getVertex();
-				if(reachability.get(vertName) == l) {
+			for (int j = 0; j < vertexList.size(); j++) {
+				String vertName = vertList.get(j).getVertex();
+				if(atomicRCore.get(j) == l) {
 					vertexBuff.add(vertName);
 				}
 			}
 			if(vertexBuff.size() > 0) {
 				Range range = Range.create(vertexList.size());
-				RCoreKernel rc = new RCoreKernel();
+				RCoreKernel rc = new RCoreKernel(vertexList);
 				if(device == "CPU") {
 					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
 				}
@@ -348,10 +377,12 @@ public class RcoreParallel extends AbstractTask {
 //				rc.setReachableList(reachableList);
 				rc.setReachability(reachability);
 				rc.setVertexBuff(vertexBuff);
-				rc.setVertexList(vertexList);
+				rc.setAtomicRCore(atomicRCore);
+//				rc.setVertexList(vertexList);
 				
 				rc.execute(range);
 				reachability = rc.getReachability();
+				atomicRCore = rc.getAtomicRCore();
 				i += rc.getVisitedVertex();
 				rc.dispose();
 				vertexBuff.clear();
