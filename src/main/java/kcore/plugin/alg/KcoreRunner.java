@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.swing.JOptionPane;
 
+import convertFile.ConvertXMLtoText;
 import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.biomarker.Biomaker;
 import kcore.plugin.biomarker_parallel.Biomarker_algorithm_parallel;
@@ -32,7 +33,6 @@ public class KcoreRunner {
 	public void runKcore() {
 		Kcore alg = new Kcore(params,this.path);
 		try {
-			
 			TaskFactory factory = new TaskFactory(alg);
 			ServicesUtil.taskManagerServiceRef.execute(factory.createTaskIterator());
 			
@@ -48,9 +48,8 @@ public class KcoreRunner {
 					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		
-
 	}
+	
 	public void runKcoreGPU() {
 		try {
 			KcoreParallel alg = new KcoreParallel(params,this.path,this.device);
@@ -64,7 +63,7 @@ public class KcoreRunner {
 			return;
 		}
 		finally{
-			JOptionPane.showMessageDialog(null, "Compute K-core GPU Success, open text file to see the result!",
+			JOptionPane.showMessageDialog(null, "Compute K-core Success, open text file to see the result!",
 					"Infor", JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
@@ -104,7 +103,7 @@ public class KcoreRunner {
 			return;
 		}
 		finally{
-			JOptionPane.showMessageDialog(null, "Compute R-core GPU Success, open text file to see the result!",
+			JOptionPane.showMessageDialog(null, "Compute R-core Success, open text file to see the result!",
 					"Infor", JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
@@ -182,7 +181,7 @@ public class KcoreRunner {
 			return;
 		}
 		finally{
-			JOptionPane.showMessageDialog(null, "Compute Biomarker Parallel Success, open text file to see the result!", "Infor",
+			JOptionPane.showMessageDialog(null, "Compute Biomarker Success, open text file to see the result!", "Infor",
 					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}

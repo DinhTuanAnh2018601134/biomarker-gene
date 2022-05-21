@@ -16,14 +16,14 @@ import kcore.plugin.alg.param.KcoreParameters;
 import kcore.plugin.hc.DirectionType;
 import kcore.plugin.hc_parallel.Edge1;
 import kcore.plugin.hc_parallel.Vert;
-import kcore.plugin.hc_parallel.hc_algorithm_parallel;
-import kcore.plugin.rcore.parallel.RcoreParallel;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,6 +72,8 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 	private Map<String, Double> hc;
 	// map to store r-core
 	private Map<String, Integer> rCore;
+	// arraylist to store biomarker
+	private ArrayList<BiomarkerResult> biomarkerGene;
 	// map to store adjacency list
 	private Map<String, Vector<String>> adjList;
 	// map to store reachability
@@ -94,8 +96,6 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 	public Map<String, Double> sortedMap;	
 	private String timeStart;
 	private String timeEnd;
-	private RcoreParallel rCoreParallel = new RcoreParallel(params, outputFile, device);
-	private hc_algorithm_parallel hcParallel = new hc_algorithm_parallel(params, outputFile, device, true);
 	
 	public DirectionType getType(List<String> type) {
 		DirectionType direction = DirectionType.UNDIRECTED;
@@ -104,7 +104,8 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
 					|| temp.contains("missing_interaction") || temp.contains("phosphorylation") || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
-			} else if (temp.contains("dissociation")) {
+			} 
+			else if (temp.contains("dissociation") || temp.contains("binding/association")) {
 				direction = DirectionType.UNDIRECTED;
 			}
 		}
@@ -125,6 +126,7 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 		vertList = new ArrayList<>(); 
 		closeness = new HashMap<>();
 		rCore = new HashMap<>();
+		biomarkerGene = new ArrayList<>();
 		vertexBuff = new ArrayList<>();
 		adjListRcore = new HashMap<>();
 
@@ -173,9 +175,9 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 				Edge edge = new Edge(subName[0], subName[subName.length - 1], direction == DirectionType.DIRECTED ? 1:0, 1);
 				edgeList.add(edge);
 			}
-//			else if (type.contains("compound")) {
-//
-//			} 
+			else if (type.contains("compound")) {
+
+			} 
 			else {
 				DirectionType direction = getType(type);
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
@@ -200,9 +202,9 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 	public void setAr(ArrayList<String> ar1, ArrayList<String> ar2, String key, int type) {
 		for (int k = 0; k < listNode.size(); k++) {
 			String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
-//			if (subName.contains("container")) {
-//
-//			} else {
+			if (subName.contains("container")) {
+
+			} else {
 				String[] subNameArray = subName.split(":");
 				// lay ra entryId
 				String subItem = subNameArray[subNameArray.length - 1];
@@ -223,7 +225,7 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 					}
 
 				}
-//			}
+			}
 		}
 	}
 
@@ -264,6 +266,14 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 	// load data
 	@SuppressWarnings("deprecation")
 	public void loadData() {
+		if(device == "CPU") {
+//			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
+			System.setProperty("com.aparapi.executionMode", "CPU");
+		}
+		else {
+//			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
+			System.setProperty("com.aparapi.executionMode", "GPU");
+		}
 		for (Edge edge : edgeList) {
 			pushMapV(adjList, edge.getStartNode(), edge.getEndNode(), edge.getDirection());
 			vertexList.add(edge.getStartNode());
@@ -276,14 +286,6 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 		
 		//compute reachability
 		hcKernel_reachability hcRea = new hcKernel_reachability();
-		if(device == "CPU") {
-//			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
-//			System.setProperty("com.aparapi.executionMode", "JTP");
-		}
-		else {
-//			hcRea.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
-			System.setProperty("com.aparapi.executionMode", "GPU");
-		}
 		hcRea.setAdjList(adjList);
 		hcRea.setVertextList(vertexs);
 		
@@ -322,14 +324,6 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 				}
 			closeness.put(vert.getName(), path/(vertexList.size()-1));
 		}
-//		hcKernel_closeness hcClo = new hcKernel_closeness();
-//		hcClo.setVertexList(vertexList);
-//		hcClo.setAdjList(adjList);
-//		hcClo.setReachableList(reachableList);
-//		hcClo.setListVert(vertList);
-//		hcClo.execute(range);
-//		closeness = hcClo.getCloseness();
-//		hcClo.dispose();
 //		compute hc
 		Set<String> nodeList = reachability.keySet();
 		for (String node : nodeList) {
@@ -358,12 +352,6 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				range = Range.create(vertexList.size());
 				RCoreKernel rc = new RCoreKernel();
-//				if(device == "CPU") {
-//					rc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
-//				}
-//				else {
-//					rc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
-//				}
 				rc.setL(l);
 				rc.setAdjList(adjListRcore);
 				rc.setReachableList(reachableList);
@@ -396,14 +384,16 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 		System.out.println("bio ss");
 		Path path = Paths.get(outputFile);
 		List<String> lines = new ArrayList<>();
-		// sort map by value
-//		sortedMap = MapComparator.sortByValue(hc);
-		lines.add("time start: " + start + " - " + "time end: " + end);
+		
 		lines.add("Node\tRcore\tHC");
-		for (String vertex : vertexList) {
-			lines.add(String.format("%s\t%d\t%f", vertex, reachability.get(vertex) + 1, hc.get(vertex) + 1));
+//		for (String vertex : vertexList) {
+//			lines.add(String.format("%s\t%d\t%f", vertex, reachability.get(vertex) + 1, hc.get(vertex) + 1));
+//		}
+		for (BiomarkerResult result : biomarkerGene) {
+			lines.add(String.format("%s\t%d\t%f", result.getName(), result.getrCore(), result.getHc()));
 		}
-
+		lines.add("time start: " + start + " - " + "time end: " + end);
+		
 		Files.write(path, lines);
 		Runtime rt = Runtime.getRuntime();
 		try {
@@ -457,7 +447,31 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 
 	// compute
 	public void compute() {
-		
+		for (String vertex : vertexList) {
+			BiomarkerResult result = new BiomarkerResult(vertex, reachability.get(vertex) + 1, hc.get(vertex) + 1);
+			biomarkerGene.add(result);
+		}
+		Collections.sort(biomarkerGene, new Comparator<BiomarkerResult>() {
+	        @Override
+	        public int compare(BiomarkerResult bio1, BiomarkerResult bio2) {
+	        	if(bio1.getrCore() < bio2.getrCore()) {
+	        		return 1;
+	        	}
+	        	else if(bio1.getrCore() > bio2.getrCore()) {
+	        		return -1;
+	        	}
+	        	else {
+	        		if(bio1.getHc() <= bio2.getHc()) {
+	        			return 1;
+	        		}
+	        		else {
+	        			return -1;
+	        		}
+	        	}
+	        }
+	    });
+//		biomarkerGene.sort((Comparator.comparingInt(bio -> ((BiomarkerResult)bio).getrCore())
+//                .thenComparingDouble(bio -> ((BiomarkerResult)bio).getHc())));
 	}
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
@@ -471,7 +485,7 @@ public class Biomarker_algorithm_parallel extends AbstractTask {
 		init();
 
 		taskMonitor.setProgress(0.3);
-		taskMonitor.setStatusMessage("Load data ....");
+		taskMonitor.setStatusMessage("Computing Biomarker gene ....");
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");//dd/MM/yyyy
 	    Date now = new Date();
 	    timeStart = sdfDate.format(now);

@@ -29,7 +29,7 @@ public class KcorePanelComponent implements CytoPanelComponent {
 
 	@Override
 	public String getTitle() {
-		return "CorePlugin";
+		return "C-Biomarker.net";
 	}
 
 	@Override

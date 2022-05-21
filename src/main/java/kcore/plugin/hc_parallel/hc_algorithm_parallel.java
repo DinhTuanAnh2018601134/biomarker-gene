@@ -262,12 +262,12 @@ public class hc_algorithm_parallel extends AbstractTask {
 		// load data
 		@SuppressWarnings("deprecation")
 		public void loadData() {
-//			if(device == "CPU") {
-//				System.setProperty("com.aparapi.executionMode", "JTP");
-//			}
-//			else {
-//				System.setProperty("com.aparapi.executionMode", "GPU");
-//			}
+			if(device == "CPU") {
+				System.setProperty("com.aparapi.executionMode", "CPU");
+			}
+			else {
+				System.setProperty("com.aparapi.executionMode", "GPU");
+			}
 //			else
 //				rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 			for (Edge edge : edgeList) {

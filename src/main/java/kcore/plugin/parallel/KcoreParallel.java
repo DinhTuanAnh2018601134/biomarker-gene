@@ -280,12 +280,12 @@ public class KcoreParallel extends AbstractTask {
 
 	@SuppressWarnings("deprecation")
 	public void compute() {
-//		if(device == "CPU") {
-//			System.setProperty("com.aparapi.executionMode", "JTP");
-//		}
-//		else {
-//			System.setProperty("com.aparapi.executionMode", "GPU");
-//		}
+		if(device == "CPU") {
+			System.setProperty("com.aparapi.executionMode", "CPU");
+		}
+		else {
+			System.setProperty("com.aparapi.executionMode", "GPU");
+		}
 			
 //		else
 //			kc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
@@ -302,12 +302,6 @@ public class KcoreParallel extends AbstractTask {
 			if(vertexBuff.size() > 0) {
 				Range range = Range.create(vertexList.size());
 				KCoreKernel kc = new KCoreKernel(degrees);
-				if(device == "CPU") {
-					kc.setExecutionMode(Kernel.EXECUTION_MODE.JTP);
-				}
-//				else {
-//					kc.setExecutionMode(Kernel.EXECUTION_MODE.GPU);
-//				}
 				kc.setL(l);
 				kc.setAdjList(adjList);
 //				kc.setDegrees(degrees);
@@ -321,7 +315,17 @@ public class KcoreParallel extends AbstractTask {
 //				kCore = kc.getkCore();
 				atomickCore = kc.getAtomickCore();
 				i += kc.getVisitedVertex();
+//				CyclicBarrier ba = new CyclicBarrier(i);
 //				System.out.println("new atomic: " + atomickCore.toString());
+//				try {
+//					ba.await();
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (BrokenBarrierException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 				kc.dispose();
 				vertexBuff.clear();
 			}

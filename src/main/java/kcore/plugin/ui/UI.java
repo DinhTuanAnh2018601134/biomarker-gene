@@ -17,7 +17,7 @@ public class UI extends AbstractCyAction {
 	private final CytoPanel cytoPanelWest;
 
 	public UI(KcoreParametersPanel mainPanel) {
-		super("Core Plugin...", ServicesUtil.cyApplicationManagerServiceRef, "network", ServicesUtil.cyNetworkViewManagerServiceRef);
+		super("C-Biomarker.net...", ServicesUtil.cyApplicationManagerServiceRef, "network", ServicesUtil.cyNetworkViewManagerServiceRef);
 		setPreferredMenu("Apps");
 		//setMenuGravity(2.0f);
 		

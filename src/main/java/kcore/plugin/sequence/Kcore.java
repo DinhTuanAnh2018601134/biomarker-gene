@@ -143,9 +143,9 @@ public class Kcore extends AbstractTask {
 				edgeList.add(edge);
 			
 			}
-//			else if (type.contains("compound")) {
-//
-//			} 
+			else if (type.contains("compound")) {
+
+			} 
 			else {
 				String name = cyTable.getRow(listEdge.get(i).getSUID()).get("name", String.class).trim();
 				String[] subName = name.split(" ");

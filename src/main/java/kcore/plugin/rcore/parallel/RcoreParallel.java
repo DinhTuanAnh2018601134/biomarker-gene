@@ -346,12 +346,12 @@ public class RcoreParallel extends AbstractTask {
 	// compute
 	@SuppressWarnings("deprecation")
 	public void compute() {
-//		if(device == "CPU") {
-//			System.setProperty("com.aparapi.executionMode", "JTP");
-//		}
-//		else {
-//			System.setProperty("com.aparapi.executionMode", "GPU");
-//		}
+		if(device == "CPU") {
+			System.setProperty("com.aparapi.executionMode", "CPU");
+		}
+		else {
+			System.setProperty("com.aparapi.executionMode", "GPU");
+		}
 //		else
 //			rc.setExecutionModeWithoutFallback(Kernel.EXECUTION_MODE.GPU);
 		int i = 0;

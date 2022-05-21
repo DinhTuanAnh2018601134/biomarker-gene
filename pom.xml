@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<properties>
-		<bundle.symbolicName>KcoreParallel</bundle.symbolicName>
+		<bundle.symbolicName>C-Biomarker.net</bundle.symbolicName>
 		<bundle.namespace>kcore.plugin</bundle.namespace>
 		<cytoscape.api.version>3.0.1</cytoscape.api.version> 
 		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version> <!--  2.3.4 -->
@@ -18,7 +18,7 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>kcore</groupId>
-	<artifactId>KcoreParallel</artifactId>
+	<artifactId>C-Biomarker.net</artifactId>
 	<name>${bundle.symbolicName}</name>
 	<packaging>bundle</packaging>
 

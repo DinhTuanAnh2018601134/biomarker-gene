@@ -92,7 +92,8 @@ public class Biomaker extends AbstractTask {
 					|| temp.contains("indirect_effect") || temp.contains("via_compound")
 					|| temp.contains("missing_interaction") || temp.contains("phosphorylation") || temp.contains("1")) {
 				direction = DirectionType.DIRECTED;
-			} else if (temp.contains("dissociation")) {
+			} 
+			else if (temp.contains("dissociation")) {
 				direction = DirectionType.UNDIRECTED;
 			}
 		}
@@ -159,9 +160,9 @@ public class Biomaker extends AbstractTask {
 				}
 				
 			}
-//			else if (type.contains("compound")) {
-//
-//			} 
+			else if (type.contains("compound")) {
+
+			} 
 			else {
 				DirectionType direction = getType(type);
 
@@ -188,9 +189,9 @@ public class Biomaker extends AbstractTask {
 	public void setArHC(ArrayList<String> ar1, ArrayList<String> ar2, String key, int type) {
 		for (int k = 0; k < listNode.size(); k++) {
 			String subName = cyTableNode.getRow(listNode.get(k).getSUID()).get("name", String.class).trim();
-//			if (subName.contains("container")) {
-//
-//			} else {
+			if (subName.contains("container")) {
+
+			} else {
 				String[] subNameArray = subName.split(":");
 				// lay ra entryId
 				String subItem = subNameArray[subNameArray.length - 1];
@@ -211,7 +212,7 @@ public class Biomaker extends AbstractTask {
 					}
 
 				}
-//			}
+			}
 		}
 	}
 
@@ -796,20 +797,20 @@ public class Biomaker extends AbstractTask {
 
 		lines.add("time start: " + start + " - " + "time end: " + end);
 		lines.add("Node\tRCore\tHC");
-		for (String vertex : vertexList) {
-			lines.add(String.format("%s\t%d\t%f", vertex, rCore.get(vertex) + 1, hcEntropy.get(vertex)));
-		}
-//		int i = 0;
-//		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
-//			if (i >= 10)
-//				break;		
-//			for (Map.Entry<String, Double> entry1 : hcEntropy.entrySet()) {
-//				if (entry1.getKey().equals(entry.getKey())) {	
-//					lines.add(String.format("%s\t%d\t%9.8f", entry.getKey(), entry.getValue() + 1, entry1.getValue()));	
-//				}
-//			}
-//			i++;
+//		for (String vertex : vertexList) {
+//			lines.add(String.format("%s\t%d\t%f", vertex, rCore.get(vertex) + 1, hcEntropy.get(vertex)));
 //		}
+		int i = 0;
+		for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+			if (i >= vertexList.size())
+				break;		
+			for (Map.Entry<String, Double> entry1 : hcEntropy.entrySet()) {
+				if (entry1.getKey().equals(entry.getKey())) {	
+					lines.add(String.format("%s\t%d\t%9.8f", entry.getKey(), entry.getValue() + 1, entry1.getValue()));	
+				}
+			}
+			i++;
+		}
 		try {
 			Files.write(path, lines);
 		} catch (IOException e) {
